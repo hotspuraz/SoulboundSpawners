@@ -1,0 +1,79 @@
+name: SoulboundSpawners
+version: '${version}'
+main: evo.soulboundspawners.SoulboundSpawnersPlugin
+api-version: '1.21'
+load: POSTWORLD
+author: ImEvo
+description: Per-player owned "soulbound" spawners with silk-touch mining. Successor to MineableSpawners by fergydanny.
+softdepend: [Vault, AxAuctions, ChestShop, SellChest, PlaceholderAPI]
+
+# SQLite JDBC driver, downloaded once by Paper (cached afterwards). If your Paper
+# build already bundles it this is a no-op. If the plugin ever starts with no
+# internet and no driver, it loads in a safe "degraded" mode instead of failing
+# (see /sbs status) - drop sqlite-jdbc.jar into plugins/SoulboundSpawners/driver/.
+libraries:
+  - org.xerial:sqlite-jdbc:3.47.1.0
+
+commands:
+  soulboundspawners:
+    aliases: [sbs]
+    description: SoulboundSpawners commands.
+    usage: /sbs help
+
+permissions:
+  soulboundspawners.bypass:
+    description: Bypass ownership checks when breaking or placing spawners.
+    default: op
+  soulboundspawners.nosilk:
+    description: Mine spawners without silk touch.
+    default: false
+  soulboundspawners.mine:
+    description: Mine spawners (only enforced when mining.require-permission is true).
+    default: false
+  soulboundspawners.give:
+    description: Use /sbs give.
+    default: op
+  soulboundspawners.type:
+    description: Use /sbs type and /sbs item type.
+    default: op
+  soulboundspawners.item:
+    description: Use /sbs item.
+    default: op
+  soulboundspawners.transfer:
+    description: Use /sbs transfer.
+    default: op
+  soulboundspawners.unclaim:
+    description: Use /sbs unclaim.
+    default: op
+  soulboundspawners.info:
+    description: Use /sbs info.
+    default: op
+  soulboundspawners.types:
+    description: Use /sbs types.
+    default: op
+  soulboundspawners.reload:
+    description: Use /sbs reload.
+    default: op
+  soulboundspawners.migrate:
+    description: Use /sbs migrate.
+    default: op
+  soulboundspawners.status:
+    description: Use /sbs status.
+    default: op
+  soulboundspawners.admin:
+    description: All SoulboundSpawners permissions.
+    default: op
+    children:
+      soulboundspawners.bypass: true
+      soulboundspawners.nosilk: true
+      soulboundspawners.mine: true
+      soulboundspawners.give: true
+      soulboundspawners.type: true
+      soulboundspawners.item: true
+      soulboundspawners.transfer: true
+      soulboundspawners.unclaim: true
+      soulboundspawners.info: true
+      soulboundspawners.types: true
+      soulboundspawners.reload: true
+      soulboundspawners.migrate: true
+      soulboundspawners.status: true

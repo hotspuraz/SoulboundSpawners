@@ -1,0 +1,169 @@
+# =====================================================================
+#  SoulboundSpawners  -  by ImEvo
+#  Successor to MineableSpawners (fergydanny). On first start, settings
+#  are imported automatically from plugins/MineableSpawners/ if present.
+# =====================================================================
+
+config-version: 1
+
+# Also honour the old mineablespawners.* permission nodes while you migrate
+# LuckPerms. Set to false once every group has been updated.
+legacy-permissions: true
+
+global:
+  # Parse the type out of an old spawner item's name/lore when it has no NBT.
+  backwards-compatibility: true
+  # Rewrite legacy spawner items in a player's inventory to the current format on join.
+  fix-items-on-join: true
+  debug: false
+  # %mob% = formatted mob name, %owner% = owner name (owner line only shown on owned soulbound items)
+  display:
+    name: '&8[&e%mob% &7Spawner&8]'
+    lore:
+      - '&e&lInformation'
+      - '&eType: &f%mob%'
+      - '&eOwner: &f%owner%'
+    lore-enabled: true
+
+soulbound:
+  # Spawners of these types get per-player ownership and only spawn while the
+  # owner is online, in the same world, and within spawn-distance blocks.
+  types:
+    - EVOKER
+    - GHAST
+    - IRON_GOLEM
+    - PHANTOM
+    - RAVAGER
+    - SLIME
+    - SHULKER
+    - VINDICATOR
+    - WITHER
+    - WITCH
+  spawn-distance: 16
+
+# SoulboundSpawners' only spawn-limiting role: slow spawners down when the
+# server is busy. Physical block counts are Insights' job; live-entity counts
+# are MobFarmManager's.
+performance:
+  enabled: true
+  player-threshold: 45
+  spawn-reduction-percent: 80.0
+
+storage:
+  # SQLite file inside this folder.
+  file: spawners.db
+
+protection:
+  # Spawners survive TNT / creeper / bed explosions (current server behaviour).
+  block-explosions: true
+  # Spawners survive the wither and the ender dragon (current server behaviour).
+  block-wither: true
+  prevent-anvil-rename: true
+
+# Block owned spawner items from being listed/sold by other plugins. Add any
+# Cancellable event class that exposes an ItemStack if a route slips through.
+sell-guard:
+  enabled: true
+  events:
+    - 'com.Acrobot.ChestShop.Events.PreTransactionEvent'
+    - 'com.Acrobot.ChestShop.Events.PreShopCreationEvent'
+
+messages:
+  not-owner-place: '&cYou cannot place another players spawners!'
+  not-owner-break: '&cYou cannot break another players spawner!'
+  cant-sell-soulbound: '&cYou cannot sell soulbound items.'
+  anvil-prevented: '&cYou cannot rename spawners with anvils.'
+  bypass-must-sneak: '&cYou must be sneaking to mine this as an admin.'
+  bypassed: '&c&lBYPASSED'
+  bypassed-unbound: '&c&lBYPASSED UNBOUNDED SPAWNER'
+  not-a-player: '&cOnly players can do that.'
+  not-looking-at-spawner: '&cYou are not looking at a spawner.'
+  not-holding-spawner: '&cYou must be holding a spawner.'
+  invalid-type: '&cUnknown mob type.'
+  player-not-found: '&cThat player was not found.'
+  no-permission: '&cNo permission.'
+  transferred: '&aSpawner ownership transferred to %player%.'
+  unclaimed: '&aSpawner ownership removed.'
+  item-retyped: '&aSpawner item set to %mob%.'
+  item-owner-set: '&aSpawner item owner set to %player%.'
+  item-owner-cleared: '&aSpawner item owner cleared.'
+  spawner-retyped: '&aSpawner changed from %from% to %to%.'
+  info: '&eType: &f%mob%  &eOwner: &f%owner%  &eTracked: &f%tracked%'
+  reloaded: '&aSoulboundSpawners config reloaded.'
+
+mining:
+  require-permission: false
+  require-individual-permission: false
+  # Any pickaxe valid on the running server version works (with silk touch).
+  any-pickaxe: true
+  tools:
+    - WOODEN_PICKAXE
+    - STONE_PICKAXE
+    - IRON_PICKAXE
+    - GOLDEN_PICKAXE
+    - DIAMOND_PICKAXE
+    - NETHERITE_PICKAXE
+  require-silktouch: true
+  require-silktouch-level: false
+  required-level: 2
+  chance: 100.0
+  use-perm-based-chances: false
+  perm-based-chances:
+    - 'minechance.1:100'
+    - 'minechance.2:50'
+  drop-to-inventory: true
+  drop-exp: false
+  still-break: false
+  charge: false
+  prices:
+    - 'PIG:10000'
+  blacklisted-worlds: []
+  messages:
+    wrong-tool: '&cYou do not have the tool required.'
+    no-permission: '&cNo Permission.'
+    no-individual-permission: '&cYou do not have permission to mine a spawner of that type.'
+    blacklisted: "&cYou can't do that in this world."
+    no-silktouch: '&cYou need silktouch to mine this spawner.'
+    not-level-required: '&cYou are not the right silk touch level. You must be level %level%'
+    inventory-full: '&cYour inventory is full.'
+    still-break: '&cThe spawner did not drop: &f%requirement%&c.'
+    not-enough-money: '&cYou do not have enough. Missing: $%missing%'
+    transaction-success: '&eYou have mined a %type% spawner for $%cost%!'
+    out-of-luck: "&cYou were out of luck and didn't drop the spawner."
+  requirements:
+    wrong-tool: 'Wrong tool.'
+    permission: 'Not allowed to silk touch spawners.'
+    individual-permission: 'Not allowed to silk touch that type of spawner.'
+    silktouch: 'Missing Silktouch'
+    silktouch-level: 'Missing Silktouch level %level%'
+
+placing:
+  log: true
+  charge: false
+  prices:
+    - 'PIG:10000'
+  blacklisted-worlds: []
+  messages:
+    blacklisted: "&cYou can't do that in this world."
+    not-enough-money: '&cYou do not have enough. Missing: $%missing%'
+    transaction-success: '&ePlaced a %type% spawner for $%cost%!'
+
+give:
+  require-permission: true
+  drop-if-full: true
+  messages:
+    player-does-not-exist: '&cThat player does not exist.'
+    invalid-type: '&cThat type does not exist.'
+    invalid-amount: '&cInvalid amount.'
+    inventory-full: '&cInventory full, some dropped on the ground.'
+    success: '&aGave %amount%x %mob% Spawner to %target%.'
+    received: '&aYou received %amount%x %mob% Spawner.'
+
+type:
+  require-permission: true
+  require-individual-permission: true
+
+types:
+  require-permission: true
+  message-title: '&eAvailable Types: '
+  message-entry: '&f%mob%&7, '
