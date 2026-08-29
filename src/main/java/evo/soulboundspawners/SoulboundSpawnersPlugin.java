@@ -4,6 +4,7 @@ import evo.soulboundspawners.command.SbsCommand;
 import evo.soulboundspawners.config.LegacyConfigImport;
 import evo.soulboundspawners.config.PluginConfig;
 import evo.soulboundspawners.hook.InsightsHook;
+import evo.soulboundspawners.hook.MarriageHook;
 import evo.soulboundspawners.hook.SellGuardListener;
 import evo.soulboundspawners.hook.VaultHook;
 import evo.soulboundspawners.listener.AnvilRenameListener;
@@ -33,6 +34,7 @@ public final class SoulboundSpawnersPlugin extends JavaPlugin {
     private OwnershipService ownership;
     private final VaultHook vault = new VaultHook(getLogger());
     private final InsightsHook insights = new InsightsHook(getLogger());
+    private final MarriageHook marriage = new MarriageHook(getLogger());
     private final Permissions perms = new Permissions();
     private SpawnerMineListener mineListener;
     private SellGuardListener sellGuard;
@@ -55,6 +57,7 @@ public final class SoulboundSpawnersPlugin extends JavaPlugin {
 
         vault.setup();
         insights.setup();
+        marriage.setup();
 
         registerListeners();
         registerCommand();
@@ -118,6 +121,7 @@ public final class SoulboundSpawnersPlugin extends JavaPlugin {
     public OwnershipService ownership() { return ownership; }
     public VaultHook vault() { return vault; }
     public InsightsHook insights() { return insights; }
+    public MarriageHook marriage() { return marriage; }
     public Permissions perms() { return perms; }
 
     public File pluginsFolder() {

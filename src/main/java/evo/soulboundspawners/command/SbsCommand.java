@@ -138,6 +138,7 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
         plugin.send(s, "&7Rows in DB: &f" + plugin.store().count());
         plugin.send(s, "&7Vault economy: &f" + plugin.vault().isAvailable());
         plugin.send(s, "&7Insights hook: &f" + plugin.insights().isActive());
+        plugin.send(s, "&7MarriageMaster hook: &f" + plugin.marriage().isAvailable());
         plugin.send(s, "&7Soulbound types: &f" + String.join(", ", plugin.soulboundTypes().names()));
     }
 

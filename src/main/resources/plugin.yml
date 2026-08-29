@@ -5,7 +5,7 @@ api-version: '1.21'
 load: POSTWORLD
 author: ImEvo
 description: Per-player owned "soulbound" spawners with silk-touch mining. Successor to MineableSpawners by fergydanny.
-softdepend: [Vault, Insights, AxAuctions, ChestShop, SellChest, PlaceholderAPI]
+softdepend: [Vault, Insights, MarriageMaster, AxAuctions, ChestShop, SellChest, PlaceholderAPI]
 
 # SQLite JDBC driver, downloaded once by Paper (cached afterwards). If your Paper
 # build already bundles it this is a no-op. If the plugin ever starts with no

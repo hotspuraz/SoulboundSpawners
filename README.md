@@ -102,6 +102,20 @@ Full step-by-step: **[docs/ROLLOUT.md](docs/ROLLOUT.md)**.
 - Mining an owned spawner returns an item **owned by the miner**. Mining
   someone else's is blocked unless you have `soulboundspawners.bypass`.
 
+### Soulmates (MarriageMaster)
+
+If **MarriageMaster** is installed, a spawner owner's married partner is treated
+like a co-owner (config `soulmate`, all default on):
+
+- the owner's soulbound spawners spawn while the **partner** is nearby, even if
+  the owner is offline (`soulmate.spawn-for-partner`)
+- the partner can **mine** them — the spawner stays owned by the original owner,
+  not transferred to the partner (`soulmate.can-mine`)
+- the partner can **place** the owner's spawner items (`soulmate.can-place`)
+
+`soulmate.enabled: false` turns the whole thing off. If MarriageMaster isn't
+installed, these settings do nothing.
+
 ### Degraded mode
 
 If `spawners.db` can't be opened or read at startup, the plugin logs loudly and
@@ -227,6 +241,15 @@ Set `legacy-permissions: false` once every group uses the new nodes.
 |---|---|---|
 | `types` | (10 mobs) | which entity types are owned/private |
 | `spawn-distance` | `16` | owner must be within this many blocks for an owned spawner to spawn |
+
+### `soulmate` — MarriageMaster
+
+| Key | Default | Meaning |
+|---|---|---|
+| `enabled` | `true` | master switch (no-op without MarriageMaster) |
+| `can-mine` | `true` | partner can mine the owner's spawners (stays owned by the owner) |
+| `can-place` | `true` | partner can place the owner's spawner items |
+| `spawn-for-partner` | `true` | owner's spawners spawn while the partner is nearby |
 
 ### `performance` — spawn-rate throttle
 
@@ -362,6 +385,7 @@ placement reads all four formats.
 | **GriefPrevention / WorldGuard** | Claim/region protection runs first (LOWEST/LOW). If it denies the break, SBS respects it *unless* `mining.force-break: true` and the player passed SBS's own checks. Set `force-break: false` to always defer to region protection. |
 | **Vault** | Optional. Only used when `mining.charge` / `placing.charge` is on. Reflective — no hard dependency. |
 | **AxAuctions / ChestShop / SellChest** | `sell-guard` blocks owned items from being listed/sold. Add the real listing-event classes to `sell-guard.events` (check the `[sell-guard] Watching …` startup lines). |
+| **MarriageMaster** | Optional. When present, a spawner owner's married partner can use their soulbound spawners — see [Soulmates](#soulmates-marriagemaster). Reflective — no hard dependency. |
 | **AtherialLibPlugin** | **Not** a dependency. Only its `database.yml` file is read, and only by `/sbs migrate`. Can be removed once nothing else on the server uses it. |
 
 ## Rollout & rollback

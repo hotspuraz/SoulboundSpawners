@@ -55,22 +55,7 @@ public final class SpawnerSpawnListener implements Listener {
                     return;
                 }
             } else {
-                if (owned.owner() == null) {
-                    event.setCancelled(true);
-                    return;
-                }
-                Player ownerPlayer = plugin.getServer().getPlayer(owned.owner());
-                if (ownerPlayer == null) {
-                    event.setCancelled(true);
-                    return;
-                }
-                Location ol = ownerPlayer.getLocation();
-                if (ol.getWorld() == null || !ol.getWorld().equals(spawnerLoc.getWorld())) {
-                    event.setCancelled(true);
-                    return;
-                }
-                double maxDist = plugin.config().spawnDistance();
-                if (ol.distanceSquared(spawnerLoc) > maxDist * maxDist) {
+                if (owned.owner() == null || !someoneAuthorisedNearby(owned.owner(), spawnerLoc)) {
                     event.setCancelled(true);
                     return;
                 }
@@ -87,5 +72,27 @@ public final class SpawnerSpawnListener implements Listener {
                 }
             }
         }
+    }
+
+    /** Owner, or (if enabled) an online married partner, in the same world and within spawn-distance. */
+    private boolean someoneAuthorisedNearby(java.util.UUID owner, Location spawnerLoc) {
+        double maxDist = plugin.config().spawnDistance();
+        Player ownerPlayer = plugin.getServer().getPlayer(owner);
+        if (inRange(ownerPlayer, spawnerLoc, maxDist)) return true;
+
+        if (plugin.config().soulmateEnabled() && plugin.config().soulmateSpawnNearby()
+                && plugin.marriage().isAvailable()) {
+            for (Player partner : plugin.marriage().onlinePartners(owner)) {
+                if (inRange(partner, spawnerLoc, maxDist)) return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean inRange(Player p, Location spawnerLoc, double maxDist) {
+        if (p == null) return false;
+        Location l = p.getLocation();
+        if (l.getWorld() == null || !l.getWorld().equals(spawnerLoc.getWorld())) return false;
+        return l.distanceSquared(spawnerLoc) <= maxDist * maxDist;
     }
 }

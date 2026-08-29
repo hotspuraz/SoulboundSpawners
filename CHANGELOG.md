@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.2.0
+
+- **Soulmates (MarriageMaster).** A spawner owner's married partner can now use
+  their soulbound spawners:
+  - the owner's spawners spawn while the **partner** is nearby (owner can be
+    offline) — `soulmate.spawn-for-partner`
+  - the partner can **mine** them (the spawner stays owned by the original owner)
+    — `soulmate.can-mine`
+  - the partner can **place** the owner's spawner items — `soulmate.can-place`
+  - master switch `soulmate.enabled`; all default on, all ignored if
+    MarriageMaster isn't installed. Reflective hook, no dependency.
+  - `/sbs status` shows `MarriageMaster hook`.
+
 ## 4.1.3
 
 - `/sbs give` / `/sbs type` / `/sbs item type` tab-complete now suggests **every**

@@ -41,6 +41,17 @@ soulbound:
     - WITCH
   spawn-distance: 16
 
+# Let a spawner owner's MarriageMaster partner use their soulbound spawners.
+# Ignored if MarriageMaster isn't installed.
+soulmate:
+  enabled: true
+  # partner can break / pick up the owner's spawners
+  can-mine: true
+  # partner can place the owner's spawner items
+  can-place: true
+  # the owner's spawners spawn while the PARTNER is nearby (owner can be offline)
+  spawn-for-partner: true
+
 # SoulboundSpawners' only spawn-limiting role: slow spawners down when the
 # server is busy. Physical block counts are Insights' job; live-entity counts
 # are MobFarmManager's.

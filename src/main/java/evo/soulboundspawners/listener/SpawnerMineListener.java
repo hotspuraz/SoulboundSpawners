@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -101,13 +102,20 @@ public final class SpawnerMineListener implements Listener {
         }
 
         // 2. is this spawner owned by someone else?
+        boolean soulmate = owned != null && owned.owner() != null && !degraded
+                && !owned.owner().equals(player.getUniqueId())
+                && cfg.soulmateEnabled() && cfg.soulmateCanMine()
+                && plugin.marriage().isAvailable()
+                && plugin.marriage().arePartners(owned.owner(), player.getUniqueId());
         if (owned != null && !degraded && owned.owner() != null
-                && !owned.owner().equals(player.getUniqueId())) {
+                && !owned.owner().equals(player.getUniqueId()) && !soulmate) {
             e.setCancelled(true);
             plugin.notify(player, cfg.msg("not-owner-break")
                     .replace("%owner%", plugin.spawnerItems().nameOf(owned.owner())));
             return;
         }
+        // a partner mining keeps the spawner owned by the original owner
+        UUID newOwner = soulmate ? owned.owner() : player.getUniqueId();
 
         // blacklisted world
         if (cfg.miningBlacklistedWorlds().contains(player.getWorld().getName())) {
@@ -185,7 +193,7 @@ public final class SpawnerMineListener implements Listener {
         }
 
         plugin.ownership().unregister(key);
-        giveSpawner(e, entityType, loc, player, block, key, cost, player.getUniqueId());
+        giveSpawner(e, entityType, loc, player, block, key, cost, newOwner);
     }
 
     private void giveSpawner(BlockBreakEvent e, EntityType type, Location loc, Player player, Block block,

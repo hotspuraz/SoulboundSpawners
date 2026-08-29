@@ -39,6 +39,12 @@ public final class PluginConfig {
     }
     public double spawnDistance() { return c.getDouble("soulbound.spawn-distance", 16); }
 
+    // --- soulmate (MarriageMaster) ---
+    public boolean soulmateEnabled()      { return c.getBoolean("soulmate.enabled", true); }
+    public boolean soulmateCanMine()      { return c.getBoolean("soulmate.can-mine", true); }
+    public boolean soulmateCanPlace()     { return c.getBoolean("soulmate.can-place", true); }
+    public boolean soulmateSpawnNearby()  { return c.getBoolean("soulmate.spawn-for-partner", true); }
+
     // --- performance / spawn-rate throttle ---
     public boolean throttleEnabled()      { return c.getBoolean("performance.enabled", true); }
     public int throttlePlayerThreshold()  { return c.getInt("performance.player-threshold", 45); }

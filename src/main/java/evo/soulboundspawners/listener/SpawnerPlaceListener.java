@@ -43,7 +43,12 @@ public final class SpawnerPlaceListener implements Listener {
         Player player = e.getPlayer();
         PluginConfig cfg = plugin.config();
 
-        if (owner != null && !player.getUniqueId().equals(owner) && !plugin.perms().hasBypass(player)) {
+        boolean soulmate = owner != null && !player.getUniqueId().equals(owner)
+                && cfg.soulmateEnabled() && cfg.soulmateCanPlace()
+                && plugin.marriage().isAvailable()
+                && plugin.marriage().arePartners(owner, player.getUniqueId());
+        if (owner != null && !player.getUniqueId().equals(owner)
+                && !plugin.perms().hasBypass(player) && !soulmate) {
             e.setCancelled(true);
             plugin.notify(player, cfg.msg("not-owner-place")
                     .replace("%owner%", plugin.spawnerItems().nameOf(owner)));
