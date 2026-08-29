@@ -28,6 +28,13 @@ import java.util.stream.Collectors;
 
 public final class SbsCommand implements CommandExecutor, TabCompleter {
 
+    /** Every living entity type, lower-case, for /sbs give|type|item type completion. */
+    private static final List<String> ALL_MOB_TYPES = Arrays.stream(EntityType.values())
+            .filter(t -> t != EntityType.UNKNOWN && t.isAlive())
+            .map(t -> t.name().toLowerCase(Locale.ROOT))
+            .sorted()
+            .toList();
+
     private final SoulboundSpawnersPlugin plugin;
 
     public SbsCommand(SoulboundSpawnersPlugin plugin) {
@@ -397,8 +404,8 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
         if (typeArg) {
             String tok = args[args.length - 1].toLowerCase(Locale.ROOT);
             List<String> out = new ArrayList<>();
-            for (String s : plugin.soulboundTypes().names()) {
-                if (s.toLowerCase(Locale.ROOT).startsWith(tok)) out.add(s.toLowerCase(Locale.ROOT));
+            for (String s : ALL_MOB_TYPES) {
+                if (s.startsWith(tok)) out.add(s);
             }
             return out;
         }

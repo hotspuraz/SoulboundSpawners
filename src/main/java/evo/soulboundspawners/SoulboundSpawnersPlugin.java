@@ -39,6 +39,8 @@ public final class SoulboundSpawnersPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         LegacyConfigImport.run(pluginsFolder(), getDataFolder(), getConfig(), getLogger());
+        // add any config keys introduced in a newer version (existing values kept)
+        getConfig().options().copyDefaults(true);
         saveConfig();
 
         buildConfigDerived();

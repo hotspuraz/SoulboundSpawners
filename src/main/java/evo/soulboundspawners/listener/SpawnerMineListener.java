@@ -9,13 +9,11 @@ import evo.soulboundspawners.ownership.OwnedSpawner;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -39,10 +37,10 @@ import java.util.concurrent.ThreadLocalRandom;
  *   <li>permission-based chances respect config order.</li>
  * </ul>
  *
- * <p>When it decides the player gets the spawner it <b>takes over the break</b>:
- * cancels the event and removes the block itself. The old plugin relied on the
- * vanilla break proceeding, which fails on servers that protect spawner blocks
- * (region flags, anticheat, etc).
+ * <p>When mining resolves it lets the vanilla break proceed (drops suppressed) so
+ * that Insights, CoreProtect and stackers see a normal removal, and only if
+ * something vetoes the break <em>after</em> us does it remove the block itself
+ * on the next tick.
  */
 public final class SpawnerMineListener implements Listener {
 
@@ -161,7 +159,7 @@ public final class SpawnerMineListener implements Listener {
         if (dropChance < 1.0 && ThreadLocalRandom.current().nextDouble() >= dropChance) {
             plugin.notify(player, cfg.miningMsg("out-of-luck"));
             plugin.ownership().unregister(key);
-            takeOverBreak(e, block, key, false); // block goes, no item
+            letBreak(e, block, key, false); // block goes, no item
             return;
         }
 
@@ -201,8 +199,8 @@ public final class SpawnerMineListener implements Listener {
                     .replace("%balance%", df.format(plugin.vault().balance(player))));
         }
 
-        boolean giveExp = cfg.miningDropExp() && !recentlyMined.contains(key);
-        takeOverBreak(e, block, key, giveExp);
+        boolean keepExp = cfg.miningDropExp() && !recentlyMined.contains(key);
+        letBreak(e, block, key, keepExp);
 
         if (cfg.miningDropToInventory() && player.getInventory().firstEmpty() != -1) {
             player.getInventory().addItem(item);
@@ -212,19 +210,24 @@ public final class SpawnerMineListener implements Listener {
     }
 
     /**
-     * Cancel the vanilla break and remove the block ourselves, so it works even
-     * where a region flag / anticheat would otherwise stop it.
+     * Let the vanilla break go through (drops suppressed) so other plugins see a
+     * normal removal. Safety net: if the block is still a spawner next tick,
+     * something vetoed the break after us – remove it ourselves.
      */
-    private void takeOverBreak(BlockBreakEvent e, Block block, BlockKey key, boolean dropExp) {
-        e.setCancelled(true);
-        Location center = block.getLocation().toCenterLocation();
-        block.setType(Material.AIR);
-        block.getWorld().playSound(center, Sound.BLOCK_METAL_BREAK, 1f, 0.8f);
-        if (dropExp) {
-            int amount = 15 + ThreadLocalRandom.current().nextInt(30) + ThreadLocalRandom.current().nextInt(15);
-            block.getWorld().spawn(center, ExperienceOrb.class, orb -> orb.setExperience(amount));
-        }
+    private void letBreak(BlockBreakEvent e, Block block, BlockKey key, boolean keepExp) {
+        e.setDropItems(false);
+        if (!keepExp) e.setExpToDrop(0);
         rememberMined(key);
+        final Block b = block;
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (b.getType() == Material.SPAWNER) {
+                b.setType(Material.AIR);
+                if (plugin.config().debug()) {
+                    plugin.getLogger().info("[mine] safety-net removed a spawner that was re-blocked at "
+                            + key.toLegacyString());
+                }
+            }
+        });
     }
 
     private void handleStillBreak(BlockBreakEvent e, Block block, BlockKey key, Player player, String msg, String requirement) {
@@ -238,7 +241,7 @@ public final class SpawnerMineListener implements Listener {
             return;
         }
         plugin.ownership().unregister(key);
-        takeOverBreak(e, block, key, false);
+        letBreak(e, block, key, false);
         String still = plugin.config().miningMsg("still-break");
         if (still != null && !still.isEmpty()) {
             plugin.notify(player, still.replace("%requirement%", requirement == null ? "" : requirement));

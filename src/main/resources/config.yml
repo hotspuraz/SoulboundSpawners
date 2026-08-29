@@ -124,8 +124,8 @@ mining:
   # These show on the action bar (not chat) so repeated mining can't spam.
   messages:
     wrong-tool: '&cYou need a pickaxe to mine spawners.'
-    no-permission: "&cYou don't have permission to mine spawners. &7(soulboundspawners.mine)"
-    no-individual-permission: "&cYou can't mine that type of spawner."
+    no-permission: '&cYou need a higher rank to mine spawners!'
+    no-individual-permission: "&cYour rank can't mine that type of spawner."
     blacklisted: "&cYou can't mine spawners in this world."
     no-silktouch: '&cYou need a Silk Touch pickaxe to mine spawners.'
     not-level-required: '&cYou need a level %level% Silk Touch pickaxe.'

@@ -1,5 +1,22 @@
 # Changelog
 
+## 4.0.4
+
+- **Fix:** mining a spawner no longer confuses per-chunk block limiters (Insights,
+  MobFarmManager). The mine flow now lets the vanilla break event go through
+  (drops suppressed) so those plugins see a normal removal, instead of cancelling
+  it and swapping the block to air behind their back. A next-tick safety net
+  still removes the block if another plugin vetoes the break after us.
+  - *Insights counts that are already wrong from earlier builds won't self-heal —
+    run `/insights scan` (or Insights' area rescan) on the affected chunks once.*
+- **Fix:** `/sbs give`, `/sbs type`, `/sbs item type` now tab-complete **all**
+  mob types, not just the soulbound ones.
+- Default `no-permission` message reworded ("You need a higher rank to mine
+  spawners!"). It's fully configurable under `mining.messages`.
+- New config keys are now merged into an existing `config.yml` on start (existing
+  values kept). Changed *default text* still needs a manual edit or a config
+  regen.
+
 ## 4.0.3
 
 - `mining.require-permission` now ships **`true`** — players need
