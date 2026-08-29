@@ -96,7 +96,7 @@ the spawner type is set and, if the item had an owner, the row is registered.
 
 | Old | New |
 |---|---|
-| Spawn-egg spawner retyping | **removed entirely** (was already force-disabled in code) |
+| Spawn-egg spawner retyping | still **blocked** for players (`protection.block-egg-changes`, default on), matching the old plugin's always-cancel behaviour. The old `eggs.*` permission config is gone — it was dead code. `soulboundspawners.bypass` is exempt. (4.3.1: restored after being briefly dropped in the 4.x rebuild.) |
 | zAuctionHouse hook | removed (unused; sell-guard covers AxAuctions/ChestShop instead) |
 | ShopGUI+ spawner provider | removed (you sell via command, not item) |
 | Startup entity-type console dump | removed |
@@ -153,7 +153,8 @@ Run on staging beside a mirror of the current jar, before and after migration.
 9. `/sbs type`, `/sbs transfer`, `/sbs unclaim`, `/sbs info` on a placed spawner.
 10. `/sbs item type`, `/sbs item owner <p>`, `/sbs item owner none` on a held one.
 11. Explosion + wither next to a spawner → spawner survives.
-12. Spawn egg on a spawner → nothing happens.
+12. Spawn egg on a spawner → blocked, action-bar message, egg not consumed
+    (a `soulboundspawners.bypass` player can still do it).
 13. Anvil rename of a spawner item → blocked.
 14. Owner offline / in another world → spawner doesn't spawn, **no console error**.
 15. Delete `spawners.db`, restart → degraded mode: protection off, spawns not

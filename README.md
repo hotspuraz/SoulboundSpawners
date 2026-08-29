@@ -10,7 +10,7 @@ record and spawner item that already exists.
 - **Author:** ImEvo
 - **Origin:** fergydanny's MineableSpawners, heavily modified in 2024 by a
   freelancer, then rebuilt here.
-- **Current version:** 4.3.0
+- **Current version:** 4.3.1
 
 ---
 
@@ -41,7 +41,7 @@ record and spawner item that already exists.
 | **Mining** | Silk-touch a spawner with a pickaxe to get it as an item. Gated behind `soulboundspawners.mine` by default. The item is owned by the miner if the type is soulbound. |
 | **Placing** | Placing a spawner item applies its type; if it carries an owner it's registered. You can't place another player's soulbound spawner. |
 | **Spawn-rate throttle** | Above `performance.player-threshold` players online, a share of *all* spawner spawns is cancelled. This is SBS's only spawn limiting — block counts are Insights' job, live-entity counts are MobFarmManager's. |
-| **Protection** | Spawners survive explosions and the wither / ender dragon, and can't be renamed in anvils. All behind config flags (default on). |
+| **Protection** | Spawners survive explosions and the wither / ender dragon, can't be renamed in anvils, and can't be re-typed with a spawn egg. All behind config flags (default on). |
 | **Selling** | Owned spawner items are blocked from being listed/sold via the plugins named in `sell-guard.events`. |
 | **Persistence** | SQLite (`plugins/SoulboundSpawners/spawners.db`), WAL mode, single writer thread. Survives restarts. Fails **safe** if the DB is unavailable (see [degraded mode](#degraded-mode)). |
 
@@ -296,6 +296,7 @@ Where `/sbs migrate` reads from. Leave `database` blank to auto-discover from
 | `block-explosions` | `true` | spawners survive TNT / creeper / bed explosions |
 | `block-wither` | `true` | spawners survive the wither & ender dragon |
 | `prevent-anvil-rename` | `true` | can't rename spawner items in an anvil |
+| `block-egg-changes` | `true` | right-clicking a spawner with a spawn egg won't change its type (vanilla allows it; `soulboundspawners.bypass` is exempt) |
 
 ### `sell-guard`
 
@@ -431,7 +432,7 @@ See **[docs/ROLLOUT.md](docs/ROLLOUT.md)** for the full per-server runbook. Summ
 | `/sbs migrate` → **"Table 'x.mspawners' doesn't exist"** | it connected but that database has no data. Point `migration:` (or `database.yml`) at the database that actually holds `mspawners`. |
 | Changed a `messages:` line, `/sbs reload`, no effect | config merge adds *new* keys but doesn't overwrite existing values/text. Edit the line directly, or regenerate the file. |
 | Owned spawner isn't spawning | check `/sbs info` — is it tracked, right owner? Owner must be **online, same world, ≤ `spawn-distance` blocks**. Then check the throttle (`performance`) and MobFarmManager's entity cap. |
-| Spawn-egg no longer changes spawner type | removed on purpose (it was force-disabled in the old plugin too). |
+| Spawn-egg no longer changes spawner type | intended — `protection.block-egg-changes: true`. Vanilla allows it; the old plugin blocked it for everyone. Set the flag `false` to allow it, or give staff `soulboundspawners.bypass`. |
 
 Turn on `global.debug: true` + `/sbs reload` for `[mine]` / `[audit]` /
 join-fixer logging.

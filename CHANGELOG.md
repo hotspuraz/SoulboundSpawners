@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.3.1
+
+- **Spawn eggs can't re-type spawners again.** Vanilla lets a player right-click
+  a spawner with a spawn egg to change its mob; the old MineableSpawners blocked
+  that for everyone, but the 4.x rebuild had dropped the listener, so the block
+  was silently lost. Restored as `SpawnerEggListener`, behind
+  `protection.block-egg-changes` (default `true`), with a
+  `soulboundspawners.bypass` exemption. Message `messages.egg-change-blocked`.
+
 ## 4.3.0
 
 - **`/sbs partner`** — a spawner owner can now opt their married partner out of
