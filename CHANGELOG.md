@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.3.2
+
+- Spawn eggs can no longer change a spawner's type — for **anyone**, including
+  OPs and `soulboundspawners.bypass`. The vanilla behaviour is removed outright,
+  as it was in the original MineableSpawners. No config key, no permission, no
+  message. (4.3.1 had a `protection.block-egg-changes` toggle and a bypass
+  exemption; both are gone.) Spawner types are set with `/sbs type` /
+  `/sbs item type`.
+
 ## 4.3.1
 
 - **Spawn eggs can't re-type spawners again.** Vanilla lets a player right-click

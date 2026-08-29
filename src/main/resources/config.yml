@@ -82,9 +82,6 @@ protection:
   # Spawners survive the wither and the ender dragon (current server behaviour).
   block-wither: true
   prevent-anvil-rename: true
-  # Stop players re-typing a spawner by right-clicking it with a spawn egg
-  # (vanilla lets them; the old plugin blocked it for everyone).
-  block-egg-changes: true
 
 # Block owned spawner items from being listed/sold by other plugins. Add any
 # Cancellable event class that exposes an ItemStack if a route slips through.
@@ -100,7 +97,6 @@ messages:
   not-owner-break: "&cThis spawner belongs to %owner%."
   cant-sell-soulbound: '&cYou cannot sell soulbound items.'
   anvil-prevented: '&cYou cannot rename spawners with anvils.'
-  egg-change-blocked: '&cYou cannot change spawner types with eggs.'
   bypass-must-sneak: '&cYou must be sneaking to mine this as an admin.'
   bypassed: '&c&lBYPASSED'
   bypassed-unbound: '&c&lBYPASSED UNBOUNDED SPAWNER'

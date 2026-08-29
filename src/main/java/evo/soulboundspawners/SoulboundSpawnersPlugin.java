@@ -91,7 +91,7 @@ public final class SoulboundSpawnersPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SpawnerPlaceListener(this), this);
         getServer().getPluginManager().registerEvents(new SpawnerSpawnListener(this), this);
         getServer().getPluginManager().registerEvents(new SpawnerProtectionListener(this), this);
-        getServer().getPluginManager().registerEvents(new SpawnerEggListener(this), this);
+        getServer().getPluginManager().registerEvents(new SpawnerEggListener(), this);
         getServer().getPluginManager().registerEvents(new AnvilRenameListener(this), this);
         getServer().getPluginManager().registerEvents(new JoinItemFixListener(this), this);
 

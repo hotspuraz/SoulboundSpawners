@@ -69,7 +69,6 @@ public final class PluginConfig {
     public boolean blockExplosions()     { return c.getBoolean("protection.block-explosions", true); }
     public boolean blockWither()         { return c.getBoolean("protection.block-wither", true); }
     public boolean preventAnvilRename()  { return c.getBoolean("protection.prevent-anvil-rename", true); }
-    public boolean blockEggChanges()     { return c.getBoolean("protection.block-egg-changes", true); }
 
     // --- mining ---
     public boolean miningRequirePermission()           { return c.getBoolean("mining.require-permission", false); }
