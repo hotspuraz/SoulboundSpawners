@@ -80,15 +80,7 @@ public final class SpawnerMineListener implements Listener {
         // Something earlier (protection plugin) already vetoed the break – respect it.
         if (e.isCancelled()) return;
 
-        // ownership protection
-        if (owned != null && !degraded && owned.owner() != null
-                && !owned.owner().equals(player.getUniqueId()) && !bypassing) {
-            plugin.send(player, cfg.msg("not-owner-break"));
-            e.setCancelled(true);
-            return;
-        }
-
-        // admin bypass path
+        // admin bypass path – skips every check below
         if (bypassing) {
             if (!player.isSneaking()) {
                 e.setCancelled(true);
@@ -102,6 +94,22 @@ public final class SpawnerMineListener implements Listener {
             return;
         }
 
+        // 1. do they have the permission to mine spawners at all?
+        if (cfg.miningRequirePermission() && !plugin.perms().has(player, "mine")) {
+            e.setCancelled(true);
+            plugin.notify(player, cfg.miningMsg("no-permission"));
+            return;
+        }
+
+        // 2. is this spawner owned by someone else?
+        if (owned != null && !degraded && owned.owner() != null
+                && !owned.owner().equals(player.getUniqueId())) {
+            e.setCancelled(true);
+            plugin.send(player, cfg.msg("not-owner-break")
+                    .replace("%owner%", plugin.spawnerItems().nameOf(owned.owner())));
+            return;
+        }
+
         // blacklisted world
         if (cfg.miningBlacklistedWorlds().contains(player.getWorld().getName())) {
             plugin.notify(player, cfg.miningMsg("blacklisted"));
@@ -109,11 +117,6 @@ public final class SpawnerMineListener implements Listener {
             return;
         }
 
-        // permission gates
-        if (cfg.miningRequirePermission() && !plugin.perms().has(player, "mine")) {
-            handleStillBreak(e, block, key, player, cfg.miningMsg("no-permission"), cfg.miningRequirement("permission"));
-            return;
-        }
         String typeName = entityType == null ? "" : entityType.name().toLowerCase(Locale.ROOT);
         if (cfg.miningRequireIndividualPermission() && !plugin.perms().hasTyped(player, "mine", typeName)) {
             handleStillBreak(e, block, key, player, cfg.miningMsg("no-individual-permission"), cfg.miningRequirement("individual-permission"));

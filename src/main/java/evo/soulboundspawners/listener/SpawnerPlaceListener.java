@@ -45,7 +45,8 @@ public final class SpawnerPlaceListener implements Listener {
 
         if (owner != null && !player.getUniqueId().equals(owner) && !plugin.perms().hasBypass(player)) {
             e.setCancelled(true);
-            plugin.send(player, cfg.msg("not-owner-place"));
+            plugin.send(player, cfg.msg("not-owner-place")
+                    .replace("%owner%", plugin.spawnerItems().nameOf(owner)));
             return;
         }
 

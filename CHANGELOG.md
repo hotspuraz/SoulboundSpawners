@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.0.3
+
+- `mining.require-permission` now ships **`true`** — players need
+  `soulboundspawners.mine` to mine spawners.
+- Mining checks reordered and messaged distinctly:
+  1. no `soulboundspawners.mine` → *"You don't have permission to mine spawners.
+     (soulboundspawners.mine)"* (action bar)
+  2. spawner owned by someone else → *"This spawner belongs to `<name>`."* (chat)
+- `messages.not-owner-break` / `not-owner-place` support `%owner%`.
+
+> Existing `plugins/SoulboundSpawners/config.yml` files keep their old values —
+> either edit `mining.require-permission` + the message lines by hand, or delete
+> the file (and the `.imported` marker) and let it regenerate.
+
 ## 4.0.2
 
 - Mining feedback ("no silk touch", "wrong tool", "no permission", "out of luck",

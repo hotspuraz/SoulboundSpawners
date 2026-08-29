@@ -69,8 +69,9 @@ sell-guard:
     - 'com.Acrobot.ChestShop.Events.PreShopCreationEvent'
 
 messages:
-  not-owner-place: '&cYou cannot place another players spawners!'
-  not-owner-break: '&cYou cannot break another players spawner!'
+  # %owner% = the owner's name
+  not-owner-place: "&cThis is %owner%'s spawner - you can't place it."
+  not-owner-break: "&cThis spawner belongs to %owner%."
   cant-sell-soulbound: '&cYou cannot sell soulbound items.'
   anvil-prevented: '&cYou cannot rename spawners with anvils.'
   bypass-must-sneak: '&cYou must be sneaking to mine this as an admin.'
@@ -92,7 +93,9 @@ messages:
   reloaded: '&aSoulboundSpawners config reloaded.'
 
 mining:
-  require-permission: false
+  # true -> players need the "soulboundspawners.mine" permission to mine spawners.
+  require-permission: true
+  # true -> also need "soulboundspawners.mine.<type>" per mob type.
   require-individual-permission: false
   # Any pickaxe valid on the running server version works (with silk touch).
   any-pickaxe: true
@@ -121,7 +124,7 @@ mining:
   # These show on the action bar (not chat) so repeated mining can't spam.
   messages:
     wrong-tool: '&cYou need a pickaxe to mine spawners.'
-    no-permission: "&cYou don't have permission to mine spawners."
+    no-permission: "&cYou don't have permission to mine spawners. &7(soulboundspawners.mine)"
     no-individual-permission: "&cYou can't mine that type of spawner."
     blacklisted: "&cYou can't mine spawners in this world."
     no-silktouch: '&cYou need a Silk Touch pickaxe to mine spawners.'
