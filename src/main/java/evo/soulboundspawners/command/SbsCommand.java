@@ -53,6 +53,7 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
                 case "help" -> help(sender);
                 case "reload" -> reload(sender);
                 case "status" -> status(sender);
+                case "audit" -> audit(sender);
                 case "types" -> types(sender);
                 case "give" -> give(sender, args);
                 case "info" -> info(sender);
@@ -86,12 +87,18 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
         if (perm(s, "reload")) plugin.send(s, "&f/sbs reload");
         if (perm(s, "migrate")) plugin.send(s, "&f/sbs migrate confirm &7- one-time MySQL import (offline!)");
         if (perm(s, "status")) plugin.send(s, "&f/sbs status");
+        if (perm(s, "audit")) plugin.send(s, "&f/sbs audit &7- data health report");
     }
 
     private void reload(CommandSender s) {
         if (deny(s, "reload")) return;
         plugin.reloadEverything();
         plugin.send(s, plugin.config().msg("reloaded"));
+    }
+
+    private void audit(CommandSender s) {
+        if (deny(s, "audit")) return;
+        plugin.getServer().getScheduler().runTask(plugin, () -> AuditRunner.run(plugin, s));
     }
 
     private void status(CommandSender s) {
@@ -405,7 +412,7 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filter(Arrays.asList("help", "type", "transfer", "unclaim", "info", "item", "give", "types", "reload", "status", "migrate"), args[0]);
+            return filter(Arrays.asList("help", "type", "transfer", "unclaim", "info", "item", "give", "types", "reload", "status", "audit", "migrate"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("item")) {
             return filter(Arrays.asList("type", "owner"), args[1]);

@@ -60,6 +60,9 @@ permissions:
   soulboundspawners.status:
     description: Use /sbs status.
     default: op
+  soulboundspawners.audit:
+    description: Use /sbs audit.
+    default: op
   soulboundspawners.admin:
     description: All SoulboundSpawners permissions.
     default: op
@@ -77,3 +80,4 @@ permissions:
       soulboundspawners.reload: true
       soulboundspawners.migrate: true
       soulboundspawners.status: true
+      soulboundspawners.audit: true

@@ -50,6 +50,11 @@ public final class OwnershipService {
         return cache.size();
     }
 
+    /** Read-only snapshot of every tracked spawner (for /sbs audit). */
+    public java.util.List<OwnedSpawner> all() {
+        return new java.util.ArrayList<>(cache.values());
+    }
+
     public OwnedSpawner get(BlockKey key) {
         return cache.get(key);
     }

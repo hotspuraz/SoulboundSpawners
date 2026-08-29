@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.1.0
+
+- **`/sbs audit`** — read-only health report over the tracked-spawner data:
+  cache-vs-DB count, null/invalid owners, invalid entity types, rows in unknown
+  worlds, and (for loaded chunks) how many tracked spawners still have a spawner
+  block. Full locations logged to console. Run it before and after each server's
+  migration. Permission `soulboundspawners.audit`.
+- Added `docs/ROLLOUT.md` — per-server production rollout runbook.
+
 ## 4.0.8
 
 - After a migration (and on shutdown) the SQLite WAL is checkpointed into the
