@@ -92,7 +92,7 @@ public final class SpawnerMineListener implements Listener {
         if (bypassing) {
             if (!player.isSneaking()) {
                 e.setCancelled(true);
-                plugin.send(player, cfg.msg("bypass-must-sneak"));
+                plugin.notify(player, cfg.msg("bypass-must-sneak"));
                 return;
             }
             OwnedSpawner removed = plugin.ownership().unregister(key);
@@ -104,7 +104,7 @@ public final class SpawnerMineListener implements Listener {
 
         // blacklisted world
         if (cfg.miningBlacklistedWorlds().contains(player.getWorld().getName())) {
-            plugin.send(player, cfg.miningMsg("blacklisted"));
+            plugin.notify(player, cfg.miningMsg("blacklisted"));
             e.setCancelled(true);
             return;
         }
@@ -156,7 +156,7 @@ public final class SpawnerMineListener implements Listener {
             dropChance = cfg.miningChance() / 100.0;
         }
         if (dropChance < 1.0 && ThreadLocalRandom.current().nextDouble() >= dropChance) {
-            plugin.send(player, cfg.miningMsg("out-of-luck"));
+            plugin.notify(player, cfg.miningMsg("out-of-luck"));
             plugin.ownership().unregister(key);
             takeOverBreak(e, block, key, false); // block goes, no item
             return;
@@ -165,7 +165,7 @@ public final class SpawnerMineListener implements Listener {
         // inventory full (checked BEFORE charging)
         if (cfg.miningDropToInventory() && player.getInventory().firstEmpty() == -1) {
             e.setCancelled(true);
-            plugin.send(player, cfg.miningMsg("inventory-full"));
+            plugin.notify(player, cfg.miningMsg("inventory-full"));
             return;
         }
 
@@ -175,7 +175,7 @@ public final class SpawnerMineListener implements Listener {
             cost = new Prices(cfg.miningPrices()).priceFor(entityType);
             if (cost > 0 && !plugin.vault().withdraw(player, cost)) {
                 double missing = cost - plugin.vault().balance(player);
-                plugin.send(player, cfg.miningMsg("not-enough-money")
+                plugin.notify(player, cfg.miningMsg("not-enough-money")
                         .replace("%missing%", df.format(missing)).replace("%cost%", df.format(cost)));
                 e.setCancelled(true);
                 return;
@@ -225,16 +225,20 @@ public final class SpawnerMineListener implements Listener {
     }
 
     private void handleStillBreak(BlockBreakEvent e, Block block, BlockKey key, Player player, String msg, String requirement) {
+        if (plugin.config().debug()) {
+            plugin.getLogger().info("[mine] blocked " + key.toLegacyString() + " for " + player.getName()
+                    + " reason=\"" + requirement + "\"");
+        }
         if (!plugin.config().miningStillBreak()) {
             e.setCancelled(true);
-            if (msg != null && !msg.isEmpty()) plugin.send(player, msg);
+            if (msg != null && !msg.isEmpty()) plugin.notify(player, msg);
             return;
         }
         plugin.ownership().unregister(key);
         takeOverBreak(e, block, key, false);
         String still = plugin.config().miningMsg("still-break");
         if (still != null && !still.isEmpty()) {
-            plugin.send(player, still.replace("%requirement%", requirement == null ? "" : requirement));
+            plugin.notify(player, still.replace("%requirement%", requirement == null ? "" : requirement));
         }
     }
 

@@ -118,18 +118,19 @@ mining:
   prices:
     - 'PIG:10000'
   blacklisted-worlds: []
+  # These show on the action bar (not chat) so repeated mining can't spam.
   messages:
-    wrong-tool: '&cYou do not have the tool required.'
-    no-permission: '&cNo Permission.'
-    no-individual-permission: '&cYou do not have permission to mine a spawner of that type.'
-    blacklisted: "&cYou can't do that in this world."
-    no-silktouch: '&cYou need silktouch to mine this spawner.'
-    not-level-required: '&cYou are not the right silk touch level. You must be level %level%'
+    wrong-tool: '&cYou need a pickaxe to mine spawners.'
+    no-permission: "&cYou don't have permission to mine spawners."
+    no-individual-permission: "&cYou can't mine that type of spawner."
+    blacklisted: "&cYou can't mine spawners in this world."
+    no-silktouch: '&cYou need a Silk Touch pickaxe to mine spawners.'
+    not-level-required: '&cYou need a level %level% Silk Touch pickaxe.'
     inventory-full: '&cYour inventory is full.'
-    still-break: '&cThe spawner did not drop: &f%requirement%&c.'
-    not-enough-money: '&cYou do not have enough. Missing: $%missing%'
-    transaction-success: '&eYou have mined a %type% spawner for $%cost%!'
-    out-of-luck: "&cYou were out of luck and didn't drop the spawner."
+    still-break: '&cSpawner lost - %requirement%'
+    not-enough-money: '&cYou need $%missing% more to mine this spawner.'
+    transaction-success: '&eMined a %type% spawner for $%cost%.'
+    out-of-luck: "&cThe spawner shattered - better luck next time."
   requirements:
     wrong-tool: 'Wrong tool.'
     permission: 'Not allowed to silk touch spawners.'

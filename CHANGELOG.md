@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.0.2
+
+- Mining feedback ("no silk touch", "wrong tool", "no permission", "out of luck",
+  etc.) now shows on the **action bar** instead of chat, so repeatedly clicking a
+  spawner you can't mine no longer spams chat. Default wording rewritten to say
+  the actual reason.
+- `global.debug: true` logs which gate blocked a mine attempt (`[mine] blocked …
+  reason="…"`).
+- No behaviour change to *who* can mine — a normal player still needs only a
+  Silk Touch pickaxe, unless `mining.require-permission` is set to `true` in
+  config (it ships `false`; check your file if you're seeing a permission
+  message).
+
 ## 4.0.1
 
 - **Fix:** mined spawner block stayed in the world (player got the item but the

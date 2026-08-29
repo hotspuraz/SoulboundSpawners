@@ -128,6 +128,12 @@ public final class SoulboundSpawnersPlugin extends JavaPlugin {
         who.sendMessage(Text.color(raw));
     }
 
+    /** Feedback for repeated actions (mining a blocked spawner) - action bar, so it can't spam chat. */
+    public void notify(org.bukkit.entity.Player who, String raw) {
+        if (raw == null || raw.isEmpty()) return;
+        who.sendActionBar(Text.color(raw));
+    }
+
     public void send(CommandSender who, Component component) {
         who.sendMessage(component);
     }
