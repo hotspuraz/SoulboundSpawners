@@ -9,11 +9,13 @@ import evo.soulboundspawners.ownership.OwnedSpawner;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -30,13 +32,17 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Silk-touch spawner mining. Ported from the deployed MineableSpawners
- * behaviour, with the fixes from the audit:
+ * behaviour, with the audit fixes:
  * <ul>
- *   <li>runs at HIGH, not MONITOR, so cancelling is legal and other plugins see
- *       a consistent final state;</li>
+ *   <li>runs at HIGH, not MONITOR;</li>
  *   <li>money is only taken once the spawner is actually going to be given;</li>
  *   <li>permission-based chances respect config order.</li>
  * </ul>
+ *
+ * <p>When it decides the player gets the spawner it <b>takes over the break</b>:
+ * cancels the event and removes the block itself. The old plugin relied on the
+ * vanilla break proceeding, which fails on servers that protect spawner blocks
+ * (region flags, anticheat, etc).
  */
 public final class SpawnerMineListener implements Listener {
 
@@ -48,7 +54,7 @@ public final class SpawnerMineListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
     public void onBreak(BlockBreakEvent e) {
         Block block = e.getBlock();
         if (block.getType() != Material.SPAWNER) return;
@@ -64,17 +70,22 @@ public final class SpawnerMineListener implements Listener {
         boolean degraded = plugin.ownership().isDegraded();
         boolean bypassing = player.getGameMode() == GameMode.CREATIVE || plugin.perms().hasBypass(player);
 
+        if (cfg.debug()) {
+            plugin.getLogger().info("[mine] " + key.toLegacyString() + " by " + player.getName()
+                    + " cancelledOnEntry=" + e.isCancelled() + " bypassing=" + bypassing
+                    + " sneaking=" + player.isSneaking() + " type=" + entityType
+                    + " tracked=" + (owned != null) + " degraded=" + degraded);
+        }
+
+        // Something earlier (protection plugin) already vetoed the break – respect it.
+        if (e.isCancelled()) return;
+
         // ownership protection
         if (owned != null && !degraded && owned.owner() != null
                 && !owned.owner().equals(player.getUniqueId()) && !bypassing) {
-            plugin.send(player, plugin.config().msg("not-owner-break"));
+            plugin.send(player, cfg.msg("not-owner-break"));
             e.setCancelled(true);
             return;
-        }
-
-        // exp
-        if (!cfg.miningDropExp() || recentlyMined.contains(key)) {
-            e.setExpToDrop(0);
         }
 
         // admin bypass path
@@ -86,7 +97,7 @@ public final class SpawnerMineListener implements Listener {
             }
             OwnedSpawner removed = plugin.ownership().unregister(key);
             plugin.send(player, removed == null ? cfg.msg("bypassed-unbound") : cfg.msg("bypassed"));
-            giveSpawner(e, entityType, loc, player, block, 0,
+            giveSpawner(e, entityType, loc, player, block, key, 0,
                     removed != null ? removed.owner() : null);
             return;
         }
@@ -100,19 +111,19 @@ public final class SpawnerMineListener implements Listener {
 
         // permission gates
         if (cfg.miningRequirePermission() && !plugin.perms().has(player, "mine")) {
-            handleStillBreak(e, key, player, cfg.miningMsg("no-permission"), cfg.miningRequirement("permission"));
+            handleStillBreak(e, block, key, player, cfg.miningMsg("no-permission"), cfg.miningRequirement("permission"));
             return;
         }
         String typeName = entityType == null ? "" : entityType.name().toLowerCase(Locale.ROOT);
         if (cfg.miningRequireIndividualPermission() && !plugin.perms().hasTyped(player, "mine", typeName)) {
-            handleStillBreak(e, key, player, cfg.miningMsg("no-individual-permission"), cfg.miningRequirement("individual-permission"));
+            handleStillBreak(e, block, key, player, cfg.miningMsg("no-individual-permission"), cfg.miningRequirement("individual-permission"));
             return;
         }
 
         // tool
         ItemStack inHand = player.getInventory().getItemInMainHand();
         if (!isAllowedTool(inHand.getType(), cfg)) {
-            handleStillBreak(e, key, player, cfg.miningMsg("wrong-tool"), cfg.miningRequirement("wrong-tool"));
+            handleStillBreak(e, block, key, player, cfg.miningMsg("wrong-tool"), cfg.miningRequirement("wrong-tool"));
             return;
         }
 
@@ -121,13 +132,13 @@ public final class SpawnerMineListener implements Listener {
             int silk = inHand.getEnchantmentLevel(Enchantment.SILK_TOUCH);
             if (cfg.miningRequireSilktouchLevel()) {
                 if (silk < cfg.miningRequiredLevel()) {
-                    handleStillBreak(e, key, player,
+                    handleStillBreak(e, block, key, player,
                             cfg.miningMsg("not-level-required").replace("%level%", String.valueOf(cfg.miningRequiredLevel())),
                             cfg.miningRequirement("silktouch-level").replace("%level%", String.valueOf(cfg.miningRequiredLevel())));
                     return;
                 }
             } else if (silk < 1) {
-                handleStillBreak(e, key, player, cfg.miningMsg("no-silktouch"), cfg.miningRequirement("silktouch"));
+                handleStillBreak(e, block, key, player, cfg.miningMsg("no-silktouch"), cfg.miningRequirement("silktouch"));
                 return;
             }
         }
@@ -135,8 +146,7 @@ public final class SpawnerMineListener implements Listener {
         // drop chance
         double dropChance = 1.0;
         if (cfg.miningUsePermChances()) {
-            Map<String, Double> chances = cfg.miningPermChances();
-            for (Map.Entry<String, Double> entry : chances.entrySet()) {
+            for (Map.Entry<String, Double> entry : cfg.miningPermChances().entrySet()) {
                 if (player.hasPermission(entry.getKey())) {
                     dropChance = entry.getValue() / 100.0;
                     break;
@@ -147,8 +157,8 @@ public final class SpawnerMineListener implements Listener {
         }
         if (dropChance < 1.0 && ThreadLocalRandom.current().nextDouble() >= dropChance) {
             plugin.send(player, cfg.miningMsg("out-of-luck"));
-            plugin.ownership().unregister(key); // spawner block still breaks; drop its data
-            rememberMined(key);
+            plugin.ownership().unregister(key);
+            takeOverBreak(e, block, key, false); // block goes, no item
             return;
         }
 
@@ -173,11 +183,11 @@ public final class SpawnerMineListener implements Listener {
         }
 
         plugin.ownership().unregister(key);
-        giveSpawner(e, entityType, loc, player, block, cost, player.getUniqueId());
+        giveSpawner(e, entityType, loc, player, block, key, cost, player.getUniqueId());
     }
 
     private void giveSpawner(BlockBreakEvent e, EntityType type, Location loc, Player player, Block block,
-                             double cost, java.util.UUID owner) {
+                             BlockKey key, double cost, java.util.UUID owner) {
         ItemStack item = plugin.spawnerItems().create(type, owner, 1);
         PluginConfig cfg = plugin.config();
 
@@ -188,21 +198,40 @@ public final class SpawnerMineListener implements Listener {
                     .replace("%balance%", df.format(plugin.vault().balance(player))));
         }
 
-        rememberMined(BlockKey.of(loc));
-        if (cfg.miningDropToInventory()) {
+        boolean giveExp = cfg.miningDropExp() && !recentlyMined.contains(key);
+        takeOverBreak(e, block, key, giveExp);
+
+        if (cfg.miningDropToInventory() && player.getInventory().firstEmpty() != -1) {
             player.getInventory().addItem(item);
         } else {
-            loc.getWorld().dropItemNaturally(loc.toBlockLocation().add(0.5, 0.5, 0.5), item);
+            loc.getWorld().dropItemNaturally(loc.toCenterLocation(), item);
         }
     }
 
-    private void handleStillBreak(BlockBreakEvent e, BlockKey key, Player player, String msg, String requirement) {
+    /**
+     * Cancel the vanilla break and remove the block ourselves, so it works even
+     * where a region flag / anticheat would otherwise stop it.
+     */
+    private void takeOverBreak(BlockBreakEvent e, Block block, BlockKey key, boolean dropExp) {
+        e.setCancelled(true);
+        Location center = block.getLocation().toCenterLocation();
+        block.setType(Material.AIR);
+        block.getWorld().playSound(center, Sound.BLOCK_METAL_BREAK, 1f, 0.8f);
+        if (dropExp) {
+            int amount = 15 + ThreadLocalRandom.current().nextInt(30) + ThreadLocalRandom.current().nextInt(15);
+            block.getWorld().spawn(center, ExperienceOrb.class, orb -> orb.setExperience(amount));
+        }
+        rememberMined(key);
+    }
+
+    private void handleStillBreak(BlockBreakEvent e, Block block, BlockKey key, Player player, String msg, String requirement) {
         if (!plugin.config().miningStillBreak()) {
             e.setCancelled(true);
             if (msg != null && !msg.isEmpty()) plugin.send(player, msg);
             return;
         }
         plugin.ownership().unregister(key);
+        takeOverBreak(e, block, key, false);
         String still = plugin.config().miningMsg("still-break");
         if (still != null && !still.isEmpty()) {
             plugin.send(player, still.replace("%requirement%", requirement == null ? "" : requirement));
