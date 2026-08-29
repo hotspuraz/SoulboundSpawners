@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.0.8
+
+- After a migration (and on shutdown) the SQLite WAL is checkpointed into the
+  main `spawners.db` file, so it's a complete, backup-ready file immediately
+  rather than only after the next restart. (Your data was always safe — it just
+  lived in `spawners.db-wal` until a checkpoint.)
+
 ## 4.0.7
 
 - `/sbs migrate` can now read from an explicit database instead of only

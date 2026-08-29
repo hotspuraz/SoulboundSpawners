@@ -188,6 +188,12 @@ public final class SpawnerStore {
             } finally {
                 connection.setAutoCommit(auto);
             }
+            // fold the WAL into the main .db file so it's a complete, backup-ready
+            // file immediately after a migration rather than after the next restart
+            try (Statement st = connection.createStatement()) {
+                st.execute("PRAGMA wal_checkpoint(TRUNCATE)");
+            } catch (SQLException ignored) {
+            }
             return n;
         }).get(120, TimeUnit.SECONDS);
     }
@@ -207,7 +213,14 @@ public final class SpawnerStore {
 
     public void close() {
         io.execute(() -> {
-            try { if (connection != null) connection.close(); } catch (SQLException ignored) {}
+            try {
+                if (connection != null) {
+                    try (Statement st = connection.createStatement()) {
+                        st.execute("PRAGMA wal_checkpoint(TRUNCATE)");
+                    } catch (SQLException ignored) {}
+                    connection.close();
+                }
+            } catch (SQLException ignored) {}
         });
         io.shutdown();
         try {
