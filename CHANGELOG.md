@@ -1,5 +1,20 @@
 # Changelog
 
+## 4.0.6
+
+- **Insights integration.** Something on your server cancels the spawner
+  `BlockBreakEvent` (that's why the safety-net fires) — Insights only counts
+  removals on an un-cancelled break at MONITOR, so its per-chunk spawner count
+  was getting stuck. When our safety net has to force a spawner removal, it now
+  invalidates Insights' cached count for that chunk; Insights re-scans it on the
+  next placement and gets the true number. Shown in `/sbs status` as
+  `Insights hook: true`. No compile-time dependency — pure reflection, disables
+  itself on any error.
+- Still worth finding *what* cancels the break (debug `[mine]` line + bisect) —
+  that's the real fix; this keeps Insights honest in the meantime. MobFarmManager
+  has the same 4-per-chunk spawner cap and no hook yet, so if it's *also* stuck,
+  that points at the same underlying canceller.
+
 ## 4.0.5
 
 - **All in-world warnings now show on the action bar** (uniform), never chat:

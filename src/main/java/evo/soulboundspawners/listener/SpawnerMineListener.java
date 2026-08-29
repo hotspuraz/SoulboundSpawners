@@ -231,10 +231,13 @@ public final class SpawnerMineListener implements Listener {
         final Block b = block;
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (b.getType() == Material.SPAWNER) {
+                // Another plugin vetoed the break, so no BlockBreakEvent completed –
+                // remove the block ourselves and tell Insights its cache is stale.
                 b.setType(Material.AIR);
+                plugin.insights().chunkChangedOutsideEvent(b);
                 if (plugin.config().debug()) {
                     plugin.getLogger().info("[mine] safety-net removed a spawner that was re-blocked at "
-                            + key.toLegacyString());
+                            + key.toLegacyString() + " (Insights chunk cache invalidated)");
                 }
             }
         });
