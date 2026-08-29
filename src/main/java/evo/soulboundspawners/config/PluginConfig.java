@@ -60,6 +60,7 @@ public final class PluginConfig {
     public boolean miningRequireIndividualPermission() { return c.getBoolean("mining.require-individual-permission", false); }
     public List<String> miningTools()                  { return c.getStringList("mining.tools"); }
     public boolean miningAnyPickaxe()                  { return c.getBoolean("mining.any-pickaxe", true); }
+    public boolean miningForceBreak()                  { return c.getBoolean("mining.force-break", true); }
     public boolean miningRequireSilktouch()            { return c.getBoolean("mining.require-silktouch", true); }
     public boolean miningRequireSilktouchLevel()       { return c.getBoolean("mining.require-silktouch-level", false); }
     public int miningRequiredLevel()                   { return c.getInt("mining.required-level", 2); }

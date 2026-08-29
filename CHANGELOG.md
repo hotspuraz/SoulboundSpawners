@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.0.5
+
+- **All in-world warnings now show on the action bar** (uniform), never chat:
+  not-owner, blacklisted-world, bypass messages, transaction messages, anvil,
+  sell-guard. Command output (`/sbs info`, `reload`, etc.) stays in chat.
+- **Insights / MobFarmManager placement limit fix, take 2:** the mine listener
+  moved to `HIGHEST` and now *un-cancels* a spawner break that a region/anticheat
+  plugin blocked (new `mining.force-break: true`, default on). The break event
+  then completes for real, so per-chunk limiters count the removal and let
+  players place again. `mining.force-break: false` restores "let those plugins
+  veto spawner mining".
+  - *A limiter count that's already stuck needs one rescan / restart to clear.*
+
 ## 4.0.4
 
 - **Fix:** mining a spawner no longer confuses per-chunk block limiters (Insights,

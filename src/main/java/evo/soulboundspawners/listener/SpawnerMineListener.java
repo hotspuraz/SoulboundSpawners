@@ -52,7 +52,7 @@ public final class SpawnerMineListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGHEST)
     public void onBreak(BlockBreakEvent e) {
         Block block = e.getBlock();
         if (block.getType() != Material.SPAWNER) return;
@@ -75,8 +75,9 @@ public final class SpawnerMineListener implements Listener {
                     + " tracked=" + (owned != null) + " degraded=" + degraded);
         }
 
-        // Something earlier (protection plugin) already vetoed the break – respect it.
-        if (e.isCancelled()) return;
+        // If another plugin already vetoed the break and we're not the authority
+        // for spawner mining, respect it.
+        if (e.isCancelled() && !cfg.miningForceBreak()) return;
 
         // admin bypass path – skips every check below
         if (bypassing) {
@@ -86,7 +87,7 @@ public final class SpawnerMineListener implements Listener {
                 return;
             }
             OwnedSpawner removed = plugin.ownership().unregister(key);
-            plugin.send(player, removed == null ? cfg.msg("bypassed-unbound") : cfg.msg("bypassed"));
+            plugin.notify(player, removed == null ? cfg.msg("bypassed-unbound") : cfg.msg("bypassed"));
             giveSpawner(e, entityType, loc, player, block, key, 0,
                     removed != null ? removed.owner() : null);
             return;
@@ -103,7 +104,7 @@ public final class SpawnerMineListener implements Listener {
         if (owned != null && !degraded && owned.owner() != null
                 && !owned.owner().equals(player.getUniqueId())) {
             e.setCancelled(true);
-            plugin.send(player, cfg.msg("not-owner-break")
+            plugin.notify(player, cfg.msg("not-owner-break")
                     .replace("%owner%", plugin.spawnerItems().nameOf(owned.owner())));
             return;
         }
@@ -193,7 +194,7 @@ public final class SpawnerMineListener implements Listener {
         PluginConfig cfg = plugin.config();
 
         if (cost > 0) {
-            plugin.send(player, cfg.miningMsg("transaction-success")
+            plugin.notify(player, cfg.miningMsg("transaction-success")
                     .replace("%type%", Text.prettyMob(type == null ? "" : type.name()))
                     .replace("%cost%", df.format(cost))
                     .replace("%balance%", df.format(plugin.vault().balance(player))));
@@ -210,11 +211,20 @@ public final class SpawnerMineListener implements Listener {
     }
 
     /**
-     * Let the vanilla break go through (drops suppressed) so other plugins see a
-     * normal removal. Safety net: if the block is still a spawner next tick,
-     * something vetoed the break after us – remove it ourselves.
+     * Force the break through. We run at HIGHEST, so if a per-chunk limiter or
+     * region plugin cancelled the event we un-cancel it here – that way those
+     * plugins still see (and count) a real block removal. Drops are suppressed
+     * because we hand out our own item. A next-tick safety net covers the rare
+     * case of a MONITOR-priority listener re-cancelling.
      */
     private void letBreak(BlockBreakEvent e, Block block, BlockKey key, boolean keepExp) {
+        if (e.isCancelled() && plugin.config().miningForceBreak()) {
+            e.setCancelled(false);
+            if (plugin.config().debug()) {
+                plugin.getLogger().info("[mine] force-broke a spawner another plugin had blocked at "
+                        + key.toLegacyString());
+            }
+        }
         e.setDropItems(false);
         if (!keepExp) e.setExpToDrop(0);
         rememberMined(key);

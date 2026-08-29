@@ -42,7 +42,7 @@ public final class AnvilRenameListener implements Listener {
         if (touchingSpawner && e.getRawSlot() == 2) {
             e.setCancelled(true);
             HumanEntity who = e.getWhoClicked();
-            plugin.send(who, plugin.config().msg("anvil-prevented"));
+            plugin.notify(who, plugin.config().msg("anvil-prevented"));
         }
     }
 

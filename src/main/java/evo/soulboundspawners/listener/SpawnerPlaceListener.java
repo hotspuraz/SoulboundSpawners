@@ -45,7 +45,7 @@ public final class SpawnerPlaceListener implements Listener {
 
         if (owner != null && !player.getUniqueId().equals(owner) && !plugin.perms().hasBypass(player)) {
             e.setCancelled(true);
-            plugin.send(player, cfg.msg("not-owner-place")
+            plugin.notify(player, cfg.msg("not-owner-place")
                     .replace("%owner%", plugin.spawnerItems().nameOf(owner)));
             return;
         }
@@ -56,7 +56,7 @@ public final class SpawnerPlaceListener implements Listener {
         if (!bypassing) {
             if (cfg.placingBlacklistedWorlds().contains(player.getWorld().getName())) {
                 e.setCancelled(true);
-                plugin.send(player, cfg.placingMsg("blacklisted"));
+                plugin.notify(player, cfg.placingMsg("blacklisted"));
                 return;
             }
             if (cfg.placingCharge() && plugin.vault().isAvailable()) {
@@ -64,7 +64,7 @@ public final class SpawnerPlaceListener implements Listener {
                 if (cost > 0 && !plugin.vault().withdraw(player, cost)) {
                     double missing = cost - plugin.vault().balance(player);
                     e.setCancelled(true);
-                    plugin.send(player, cfg.placingMsg("not-enough-money")
+                    plugin.notify(player, cfg.placingMsg("not-enough-money")
                             .replace("%missing%", df.format(missing)).replace("%cost%", df.format(cost)));
                     return;
                 }
@@ -87,7 +87,7 @@ public final class SpawnerPlaceListener implements Listener {
                     + (owner != null ? " owner=" + owner : ""));
         }
         if (cost > 0) {
-            plugin.send(player, cfg.placingMsg("transaction-success")
+            plugin.notify(player, cfg.placingMsg("transaction-success")
                     .replace("%type%", Text.prettyMob(type.name()))
                     .replace("%cost%", df.format(cost))
                     .replace("%balance%", df.format(plugin.vault().balance(player))));

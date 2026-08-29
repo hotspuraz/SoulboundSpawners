@@ -97,6 +97,10 @@ mining:
   require-permission: true
   # true -> also need "soulboundspawners.mine.<type>" per mob type.
   require-individual-permission: false
+  # When a player is allowed to mine, break the spawner even if a region/anticheat
+  # plugin tried to cancel it. Keeps per-chunk limiters (Insights, MobFarmManager)
+  # counting correctly. Set false to let those plugins veto spawner mining.
+  force-break: true
   # Any pickaxe valid on the running server version works (with silk touch).
   any-pickaxe: true
   tools:

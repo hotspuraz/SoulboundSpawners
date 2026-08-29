@@ -60,7 +60,7 @@ public final class SellGuardListener implements Listener {
             if (item != null && plugin.spawnerItems().readOwner(item) != null) {
                 cancellable.setCancelled(true);
                 CommandSender who = extractActor(event);
-                if (who != null) plugin.send(who, plugin.config().msg("cant-sell-soulbound"));
+                if (who != null) plugin.notify(who, plugin.config().msg("cant-sell-soulbound"));
                 return;
             }
         }
