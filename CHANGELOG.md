@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.1.1
+
+- **`/sbs audit full`** — like `/sbs audit`, but loads every chunk that has a
+  tracked spawner (a few per tick, then unloads what it loaded) so it can check
+  *all* of them, not just those in already-loaded chunks. Reports how many
+  tracked spawners still have a spawner block vs "gone" vs "chunk never
+  generated", with the full list of missing ones in console.
+- The "owner never joined this server" line is now labelled benign — a spawner
+  owned by an absent player just activates when they next log in. High counts on
+  a fresh/copied test server are normal (their playerdata isn't on that box).
+
 ## 4.1.0
 
 - **`/sbs audit`** — read-only health report over the tracked-spawner data:

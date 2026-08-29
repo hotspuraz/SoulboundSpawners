@@ -53,7 +53,7 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
                 case "help" -> help(sender);
                 case "reload" -> reload(sender);
                 case "status" -> status(sender);
-                case "audit" -> audit(sender);
+                case "audit" -> audit(sender, args);
                 case "types" -> types(sender);
                 case "give" -> give(sender, args);
                 case "info" -> info(sender);
@@ -87,7 +87,7 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
         if (perm(s, "reload")) plugin.send(s, "&f/sbs reload");
         if (perm(s, "migrate")) plugin.send(s, "&f/sbs migrate confirm &7- one-time MySQL import (offline!)");
         if (perm(s, "status")) plugin.send(s, "&f/sbs status");
-        if (perm(s, "audit")) plugin.send(s, "&f/sbs audit &7- data health report");
+        if (perm(s, "audit")) plugin.send(s, "&f/sbs audit [full] &7- data health report");
     }
 
     private void reload(CommandSender s) {
@@ -96,9 +96,11 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
         plugin.send(s, plugin.config().msg("reloaded"));
     }
 
-    private void audit(CommandSender s) {
+    private void audit(CommandSender s, String[] args) {
         if (deny(s, "audit")) return;
-        plugin.getServer().getScheduler().runTask(plugin, () -> AuditRunner.run(plugin, s));
+        boolean full = args.length > 1 && args[1].equalsIgnoreCase("full");
+        plugin.getServer().getScheduler().runTask(plugin,
+                () -> { if (full) AuditRunner.runFull(plugin, s); else AuditRunner.run(plugin, s); });
     }
 
     private void status(CommandSender s) {
@@ -414,6 +416,7 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             return filter(Arrays.asList("help", "type", "transfer", "unclaim", "info", "item", "give", "types", "reload", "status", "audit", "migrate"), args[0]);
         }
+        if (args.length == 2 && args[0].equalsIgnoreCase("audit")) return filter(List.of("full"), args[1]);
         if (args.length == 2 && args[0].equalsIgnoreCase("item")) {
             return filter(Arrays.asList("type", "owner"), args[1]);
         }
