@@ -53,7 +53,8 @@ public final class MigrationService {
         long now = System.currentTimeMillis();
 
         try (Connection c = connect(cfg);
-             PreparedStatement ps = c.prepareStatement("SELECT uuid, location, type, owner FROM mspawners");
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT uuid, location, type, owner FROM " + safeTable(cfg.table()));
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 rowsRead++;
@@ -128,6 +129,11 @@ public final class MigrationService {
      * is there, loads any jar dropped in {@code plugins/SoulboundSpawners/driver/}
      * and uses it directly (no DriverManager cross-classloader trouble).
      */
+    /** Guard against a nonsense table name in config (identifiers can't be parameterised). */
+    private static String safeTable(String t) {
+        return (t != null && t.matches("[A-Za-z0-9_]{1,64}")) ? t : "mspawners";
+    }
+
     private Connection connect(LegacyDatabaseConfig cfg) throws Exception {
         java.util.Properties props = new java.util.Properties();
         props.setProperty("user", cfg.username());

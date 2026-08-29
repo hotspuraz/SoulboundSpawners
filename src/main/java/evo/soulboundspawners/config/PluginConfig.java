@@ -50,6 +50,15 @@ public final class PluginConfig {
     // --- storage ---
     public String storageFileName() { return c.getString("storage.file", "spawners.db"); }
 
+    // --- migration source override (blank database = auto-discover from AtherialLibPlugin/database.yml) ---
+    public boolean migrationOverride()  { return !c.getString("migration.database", "").isBlank(); }
+    public String migrationHost()       { return c.getString("migration.host", "localhost"); }
+    public int migrationPort()          { return c.getInt("migration.port", 3306); }
+    public String migrationDatabase()   { return c.getString("migration.database", ""); }
+    public String migrationUsername()   { return c.getString("migration.username", ""); }
+    public String migrationPassword()   { return c.getString("migration.password", ""); }
+    public String migrationTable()      { return c.getString("migration.table", "mspawners"); }
+
     // --- protection ---
     public boolean blockExplosions()     { return c.getBoolean("protection.block-explosions", true); }
     public boolean blockWither()         { return c.getBoolean("protection.block-wither", true); }

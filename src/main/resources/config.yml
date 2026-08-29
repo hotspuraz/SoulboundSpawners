@@ -53,6 +53,18 @@ storage:
   # SQLite file inside this folder.
   file: spawners.db
 
+# Where "/sbs migrate" reads the old MineableSpawners spawners from.
+# Leave "database" blank to auto-discover from plugins/AtherialLibPlugin/database.yml
+# (the normal case on a production server). Fill it in to migrate from a specific
+# database instead - e.g. a test copy of production.
+migration:
+  host: ''
+  port: 3306
+  database: ''
+  username: ''
+  password: ''
+  table: mspawners
+
 protection:
   # Spawners survive TNT / creeper / bed explosions (current server behaviour).
   block-explosions: true

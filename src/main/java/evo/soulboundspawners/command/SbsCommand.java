@@ -306,22 +306,33 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
 
     private void migrate(CommandSender s, String[] args) {
         if (deny(s, "migrate")) return;
+        LegacyDatabaseConfig cfg;
+        if (plugin.config().migrationOverride()) {
+            cfg = LegacyDatabaseConfig.explicit(
+                    plugin.config().migrationHost(), plugin.config().migrationPort(),
+                    plugin.config().migrationDatabase(), plugin.config().migrationUsername(),
+                    plugin.config().migrationPassword(), plugin.config().migrationTable());
+        } else {
+            cfg = LegacyDatabaseConfig.discover(plugin.pluginsFolder());
+        }
+
         if (args.length < 2 || !args[1].equalsIgnoreCase("confirm")) {
-            plugin.send(s, "&e/sbs migrate confirm &7- imports the old MySQL 'mspawners' table into SQLite.");
+            plugin.send(s, "&e/sbs migrate confirm &7- imports the old 'mspawners' MySQL table into SQLite.");
+            plugin.send(s, "&7Source: &f" + (cfg == null ? "&cnot found - set the migration: section in config.yml" : cfg.source()));
             plugin.send(s, "&cRun this with NO players online. The MySQL table is only read, never changed.");
             plugin.send(s, "&7A JSON backup and a reconciliation report are written to plugins/SoulboundSpawners/.");
             return;
         }
-        LegacyDatabaseConfig cfg = LegacyDatabaseConfig.discover(plugin.pluginsFolder());
         if (cfg == null) {
-            plugin.send(s, "&cCould not read plugins/AtherialLibPlugin/database.yml (or it is set to SQLite).");
+            plugin.send(s, "&cNo migration source. Either put plugins/AtherialLibPlugin/database.yml in place, "
+                    + "or fill in the migration: section of config.yml.");
             return;
         }
         if (!plugin.store().isHealthy()) {
             plugin.send(s, "&cSQLite store is not healthy – fix that first (see console).");
             return;
         }
-        plugin.send(s, "&eStarting migration... watch the console.");
+        plugin.send(s, "&eStarting migration from &f" + cfg.source() + "&e ... watch the console.");
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 MigrationService svc = new MigrationService(plugin.store(), plugin.getDataFolder());

@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.0.7
+
+- `/sbs migrate` can now read from an explicit database instead of only
+  `plugins/AtherialLibPlugin/database.yml`. Fill in the new `migration:` section
+  of config.yml (`host` / `port` / `database` / `username` / `password` /
+  `table`) to point it at a test copy of production. Leave `database` blank to
+  keep auto-discovering. `/sbs migrate` (no confirm) and the start message now
+  print which source it will use.
+
 ## 4.0.6
 
 - **Insights integration.** Something on your server cancels the spawner
