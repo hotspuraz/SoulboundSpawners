@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.1.2
+
+- **`/sbs audit prune confirm`** — deletes tracked-spawner rows whose block is
+  *confirmed* gone (chunk loads fine, no spawner there). Rows in chunks that
+  won't load are left alone. Writes `prune-backup-<timestamp>.json` before
+  deleting. Use `/sbs audit full` to preview the count first.
+  - These orphan rows are normal in migrated data — the old plugin's async
+    row-delete could silently drop, so ~5-10% of rows point at farms that were
+    dismantled over the years. They're harmless (a row with no spawner does
+    nothing); prune is just housekeeping.
+
 ## 4.1.1
 
 - **`/sbs audit full`** — like `/sbs audit`, but loads every chunk that has a

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.io.File;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
@@ -105,11 +106,19 @@ final class AuditRunner {
     // ---- full (loads chunks, a few per tick) ----
 
     static void runFull(SoulboundSpawnersPlugin plugin, CommandSender out) {
+        sweep(plugin, out, false);
+    }
+
+    /** Same sweep, but delete the confirmed-orphan rows (chunk loaded, block is not a spawner). */
+    static void runPrune(SoulboundSpawnersPlugin plugin, CommandSender out) {
+        sweep(plugin, out, true);
+    }
+
+    private static void sweep(SoulboundSpawnersPlugin plugin, CommandSender out, boolean prune) {
         List<OwnedSpawner> all = plugin.ownership().all();
         Meta m = scanMeta(all);
         printHeader(plugin, out, all, m);
 
-        // group by chunk
         Map<String, List<OwnedSpawner>> byChunk = new LinkedHashMap<>();
         for (OwnedSpawner s : all) {
             BlockKey k = s.key();
@@ -119,11 +128,12 @@ final class AuditRunner {
         }
         Deque<List<OwnedSpawner>> queue = new ArrayDeque<>(byChunk.values());
         int totalChunks = queue.size();
-        plugin.send(out, "&7Checking &f" + all.size() + "&7 spawners across &f" + totalChunks
-                + "&7 chunks - this loads chunks briefly, expect minor lag.");
+        plugin.send(out, "&7" + (prune ? "Pruning" : "Checking") + " &f" + all.size()
+                + "&7 spawners across &f" + totalChunks + "&7 chunks - loads chunks briefly, expect minor lag.");
 
         int[] present = {0}, gone = {0}, missingChunk = {0}, doneChunks = {0};
         List<String> sampleGone = new ArrayList<>();
+        List<OwnedSpawner> confirmedOrphans = new ArrayList<>();
 
         new BukkitRunnable() {
             @Override
@@ -136,13 +146,15 @@ final class AuditRunner {
                     boolean wasLoaded = w.isChunkLoaded(cx, cz);
                     boolean exists = w.loadChunk(cx, cz, false);
                     if (!exists) {
-                        missingChunk[0] += group.size();
+                        missingChunk[0] += group.size(); // NOT an orphan - chunk unreadable, leave it
                     } else {
                         for (OwnedSpawner s : group) {
                             BlockKey k = s.key();
-                            if (w.getBlockAt(k.x(), k.y(), k.z()).getType() == Material.SPAWNER) present[0]++;
-                            else {
+                            if (w.getBlockAt(k.x(), k.y(), k.z()).getType() == Material.SPAWNER) {
+                                present[0]++;
+                            } else {
                                 gone[0]++;
+                                confirmedOrphans.add(s);
                                 if (sampleGone.size() < 50) sampleGone.add(k.toLegacyString() + " type=" + s.entityType());
                             }
                         }
@@ -152,25 +164,63 @@ final class AuditRunner {
                 }
 
                 if ((doneChunks[0] % Math.max(1, totalChunks / 5)) < 6 && !queue.isEmpty()) {
-                    plugin.send(out, "&8audit: " + (doneChunks[0] * 100 / totalChunks) + "%");
+                    plugin.send(out, "&8" + (prune ? "prune" : "audit") + ": " + (doneChunks[0] * 100 / totalChunks) + "%");
                 }
 
-                if (queue.isEmpty()) {
-                    cancel();
-                    plugin.send(out, "&7Block check &8(full)&7: &apresent " + present[0]
-                            + " &c/ gone " + gone[0] + " &8/ chunk never generated " + missingChunk[0]);
-                    if (gone[0] > 0 || missingChunk[0] > 0) {
-                        plugin.send(out, "&eReview the &f" + (gone[0] + missingChunk[0])
-                                + "&e spawners with no block - full list in console.");
-                    } else {
-                        plugin.send(out, "&aEvery tracked spawner still has a spawner block.");
-                    }
-                    plugin.getLogger().info("[audit] FULL blockPresent=" + present[0] + " blockGone=" + gone[0]
-                            + " chunkNeverGenerated=" + missingChunk[0]);
-                    sampleGone.forEach(x -> plugin.getLogger().info("[audit] block-gone: " + x));
+                if (!queue.isEmpty()) return;
+                cancel();
+
+                plugin.send(out, "&7Block check &8(full)&7: &apresent " + present[0]
+                        + " &c/ gone " + gone[0] + " &8/ chunk never generated " + missingChunk[0]);
+                plugin.getLogger().info("[audit] FULL blockPresent=" + present[0] + " blockGone=" + gone[0]
+                        + " chunkNeverGenerated=" + missingChunk[0]);
+                sampleGone.forEach(x -> plugin.getLogger().info("[audit] block-gone: " + x));
+
+                if (!prune) {
+                    if (gone[0] > 0) plugin.send(out, "&eRun &7/sbs audit prune confirm&e to delete the "
+                            + gone[0] + " rows with no block (a backup JSON is written first).");
+                    else plugin.send(out, "&aEvery tracked spawner still has a spawner block.");
+                    return;
                 }
+
+                // prune
+                if (confirmedOrphans.isEmpty()) {
+                    plugin.send(out, "&aNothing to prune.");
+                    return;
+                }
+                File backup = writeOrphanBackup(plugin, confirmedOrphans);
+                for (OwnedSpawner s : confirmedOrphans) plugin.ownership().unregister(s.key());
+                plugin.send(out, "&aPruned &f" + confirmedOrphans.size()
+                        + "&a orphan rows. Backup: &f" + (backup == null ? "(failed)" : backup.getName()));
+                plugin.getLogger().info("[audit] PRUNED " + confirmedOrphans.size() + " orphan rows, backup="
+                        + (backup == null ? "none" : backup.getName()));
             }
         }.runTaskTimer(plugin, 1L, 1L);
+    }
+
+    private static File writeOrphanBackup(SoulboundSpawnersPlugin plugin, List<OwnedSpawner> rows) {
+        try {
+            var gson = new com.google.gson.GsonBuilder().setPrettyPrinting().create();
+            List<Map<String, Object>> list = new ArrayList<>();
+            for (OwnedSpawner s : rows) {
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put("world", s.key().world());
+                mm.put("x", s.key().x());
+                mm.put("y", s.key().y());
+                mm.put("z", s.key().z());
+                mm.put("type", s.entityType());
+                mm.put("owner", s.owner() == null ? null : s.owner().toString());
+                list.add(mm);
+            }
+            String stamp = java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
+                    .format(java.time.LocalDateTime.now());
+            File f = new File(plugin.getDataFolder(), "prune-backup-" + stamp + ".json");
+            java.nio.file.Files.writeString(f.toPath(), gson.toJson(Map.of("pruned", list)));
+            return f;
+        } catch (Exception e) {
+            plugin.getLogger().warning("[audit] could not write prune backup: " + e.getMessage());
+            return null;
+        }
     }
 
     private static String flag(int n) {
