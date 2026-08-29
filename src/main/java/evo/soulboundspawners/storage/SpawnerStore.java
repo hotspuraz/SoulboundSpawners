@@ -80,6 +80,13 @@ public final class SpawnerStore {
                           created_at  INTEGER NOT NULL,
                           PRIMARY KEY (world, x, y, z)
                         )""");
+                    st.execute("""
+                        CREATE TABLE IF NOT EXISTS player_prefs (
+                          uuid          TEXT    NOT NULL PRIMARY KEY,
+                          partner_mine  INTEGER NOT NULL DEFAULT 1,
+                          partner_place INTEGER NOT NULL DEFAULT 1,
+                          partner_spawn INTEGER NOT NULL DEFAULT 1
+                        )""");
                 }
                 return null;
             }).get(20, TimeUnit.SECONDS);
@@ -120,6 +127,47 @@ public final class SpawnerStore {
             log.log(Level.SEVERE, "[SoulboundSpawners] Failed to load spawners from the database – DEGRADED mode.", e);
             return new ArrayList<>();
         }
+    }
+
+    /** uuid -> [partnerMine, partnerPlace, partnerSpawn]. Only rows that differ from the all-true default. Blocks. */
+    public java.util.Map<UUID, boolean[]> loadAllPrefs() {
+        java.util.Map<UUID, boolean[]> out = new java.util.HashMap<>();
+        try {
+            return submit(() -> {
+                try (Statement st = connection.createStatement();
+                     ResultSet rs = st.executeQuery("SELECT uuid,partner_mine,partner_place,partner_spawn FROM player_prefs")) {
+                    while (rs.next()) {
+                        try {
+                            out.put(UUID.fromString(rs.getString(1)),
+                                    new boolean[]{rs.getInt(2) != 0, rs.getInt(3) != 0, rs.getInt(4) != 0});
+                        } catch (IllegalArgumentException ignored) {}
+                    }
+                }
+                return out;
+            }).get(15, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.log(Level.WARNING, "[SoulboundSpawners] Failed to load player prefs.", e);
+            return out;
+        }
+    }
+
+    public CompletableFuture<Void> upsertPref(UUID uuid, boolean mine, boolean place, boolean spawn) {
+        return run(() -> {
+            try (PreparedStatement ps = connection.prepareStatement("""
+                    INSERT INTO player_prefs (uuid,partner_mine,partner_place,partner_spawn)
+                    VALUES (?,?,?,?)
+                    ON CONFLICT(uuid) DO UPDATE SET
+                      partner_mine = excluded.partner_mine,
+                      partner_place = excluded.partner_place,
+                      partner_spawn = excluded.partner_spawn""")) {
+                ps.setString(1, uuid.toString());
+                ps.setInt(2, mine ? 1 : 0);
+                ps.setInt(3, place ? 1 : 0);
+                ps.setInt(4, spawn ? 1 : 0);
+                ps.executeUpdate();
+            }
+            return null;
+        }, "upsertPref " + uuid);
     }
 
     public CompletableFuture<Void> upsert(OwnedSpawner s) {

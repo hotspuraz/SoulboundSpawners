@@ -74,6 +74,7 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
                 case "transfer" -> transfer(sender, args);
                 case "unclaim" -> unclaim(sender);
                 case "item" -> item(sender, args);
+                case "partner" -> partner(sender, args);
                 case "migrate" -> migrate(sender, args);
                 default -> help(sender);
             }
@@ -101,12 +102,54 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
         if (perm(s, "migrate")) plugin.send(s, "&f/sbs migrate confirm &7- one-time MySQL import (offline!)");
         if (perm(s, "status")) plugin.send(s, "&f/sbs status");
         if (perm(s, "audit")) plugin.send(s, "&f/sbs audit [full|prune] &7- data health report");
+        plugin.send(s, "&f/sbs partner &7- what your married partner may do with your spawners");
     }
 
     private void reload(CommandSender s) {
         if (deny(s, "reload")) return;
         plugin.reloadEverything();
         plugin.send(s, plugin.config().msg("reloaded"));
+    }
+
+    /** /sbs partner [mine|place|spawn] [on|off] - a player controls what their married partner may do with their spawners. */
+    private void partner(CommandSender s, String[] args) {
+        Player p = player(s);
+        if (p == null) return;
+        if (!perm(s, "partner")) { plugin.send(s, plugin.config().msg("no-permission")); return; }
+        UUID me = p.getUniqueId();
+
+        if (args.length < 3) {
+            plugin.send(s, "&e&lYour partner may:");
+            plugin.send(s, "  &7mine your spawners: " + onOff(plugin.prefs().partnerMine(me)));
+            plugin.send(s, "  &7place your spawners: " + onOff(plugin.prefs().partnerPlace(me)));
+            plugin.send(s, "  &7keep your spawners active: " + onOff(plugin.prefs().partnerSpawn(me)));
+            plugin.send(s, "&7Change with &f/sbs partner <mine|place|spawn> <on|off>");
+            if (!plugin.marriage().isAvailable() || !plugin.config().soulmateEnabled()) {
+                plugin.send(s, "&8(soulmate features are currently off server-wide - these settings still save)");
+            }
+            return;
+        }
+        String what = args[1].toLowerCase(Locale.ROOT);
+        Boolean on = parseOnOff(args[2]);
+        if (on == null || !List.of("mine", "place", "spawn").contains(what)) {
+            plugin.send(s, "&cUsage: /sbs partner <mine|place|spawn> <on|off>");
+            return;
+        }
+        switch (what) {
+            case "mine" -> plugin.prefs().setPartnerMine(me, on);
+            case "place" -> plugin.prefs().setPartnerPlace(me, on);
+            case "spawn" -> plugin.prefs().setPartnerSpawn(me, on);
+        }
+        plugin.send(s, "&aYour partner can " + (on ? "now" : "&cno longer&a") + " &a" + what + " your spawners.");
+    }
+
+    private static String onOff(boolean b) { return b ? "&aon" : "&coff"; }
+
+    private static Boolean parseOnOff(String s) {
+        String t = s.toLowerCase(Locale.ROOT);
+        if (t.equals("on") || t.equals("true") || t.equals("yes") || t.equals("allow")) return true;
+        if (t.equals("off") || t.equals("false") || t.equals("no") || t.equals("deny")) return false;
+        return null;
     }
 
     private void audit(CommandSender s, String[] args) {
@@ -441,9 +484,11 @@ public final class SbsCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filter(Arrays.asList("help", "type", "transfer", "unclaim", "info", "item", "give", "types", "reload", "status", "audit", "migrate"), args[0]);
+            return filter(Arrays.asList("help", "type", "transfer", "unclaim", "info", "item", "give", "types", "reload", "status", "audit", "partner", "migrate"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("audit")) return filter(List.of("full", "prune"), args[1]);
+        if (args.length == 2 && args[0].equalsIgnoreCase("partner")) return filter(List.of("mine", "place", "spawn"), args[1]);
+        if (args.length == 3 && args[0].equalsIgnoreCase("partner")) return filter(List.of("on", "off"), args[2]);
         if (args.length == 3 && args[0].equalsIgnoreCase("audit") && args[1].equalsIgnoreCase("prune")) return filter(List.of("confirm"), args[2]);
         if (args.length == 2 && args[0].equalsIgnoreCase("item")) {
             return filter(Arrays.asList("type", "owner"), args[1]);

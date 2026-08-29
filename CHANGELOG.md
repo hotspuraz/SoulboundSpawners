@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.3.0
+
+- **`/sbs partner`** — a spawner owner can now opt their married partner out of
+  the soulmate features, per owner:
+  - `/sbs partner` — shows the three toggles and their current state
+  - `/sbs partner mine <on|off>` — let the partner mine the owner's spawners
+  - `/sbs partner place <on|off>` — let the partner place the owner's spawner items
+  - `/sbs partner spawn <on|off>` — let the owner's spawners run while only the
+    partner is nearby
+  - All default **on** (matches 4.2.0 behaviour). The toggle can only *restrict* —
+    the global `soulmate.*` config still applies on top. Settings persist in the
+    new `player_prefs` table and save even when soulmate features are off
+    server-wide. `soulboundspawners.partner` permission, default `true`.
+
 ## 4.2.0
 
 - **Soulmates (MarriageMaster).** A spawner owner's married partner can now use

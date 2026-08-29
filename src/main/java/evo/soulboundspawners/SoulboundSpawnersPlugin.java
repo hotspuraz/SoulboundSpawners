@@ -14,6 +14,7 @@ import evo.soulboundspawners.listener.SpawnerPlaceListener;
 import evo.soulboundspawners.listener.SpawnerProtectionListener;
 import evo.soulboundspawners.listener.SpawnerSpawnListener;
 import evo.soulboundspawners.ownership.OwnershipService;
+import evo.soulboundspawners.ownership.PrefsService;
 import evo.soulboundspawners.spawner.SoulboundTypes;
 import evo.soulboundspawners.spawner.SpawnerItems;
 import evo.soulboundspawners.storage.SpawnerStore;
@@ -32,6 +33,7 @@ public final class SoulboundSpawnersPlugin extends JavaPlugin {
     private SpawnerItems spawnerItems;
     private SpawnerStore store;
     private OwnershipService ownership;
+    private PrefsService prefs;
     private final VaultHook vault = new VaultHook(getLogger());
     private final InsightsHook insights = new InsightsHook(getLogger());
     private final MarriageHook marriage = new MarriageHook(getLogger());
@@ -54,6 +56,8 @@ public final class SoulboundSpawnersPlugin extends JavaPlugin {
 
         ownership = new OwnershipService(getLogger(), store);
         ownership.load();
+        prefs = new PrefsService(store);
+        prefs.load();
 
         vault.setup();
         insights.setup();
@@ -110,6 +114,7 @@ public final class SoulboundSpawnersPlugin extends JavaPlugin {
         buildConfigDerived();
         if (mineListener != null) mineListener.clearCache();
         ownership.load();
+        prefs.load();
     }
 
     // --- accessors ---
@@ -119,6 +124,7 @@ public final class SoulboundSpawnersPlugin extends JavaPlugin {
     public SpawnerItems spawnerItems() { return spawnerItems; }
     public SpawnerStore store() { return store; }
     public OwnershipService ownership() { return ownership; }
+    public PrefsService prefs() { return prefs; }
     public VaultHook vault() { return vault; }
     public InsightsHook insights() { return insights; }
     public MarriageHook marriage() { return marriage; }

@@ -46,7 +46,8 @@ public final class SpawnerPlaceListener implements Listener {
         boolean soulmate = owner != null && !player.getUniqueId().equals(owner)
                 && cfg.soulmateEnabled() && cfg.soulmateCanPlace()
                 && plugin.marriage().isAvailable()
-                && plugin.marriage().arePartners(owner, player.getUniqueId());
+                && plugin.marriage().arePartners(owner, player.getUniqueId())
+                && plugin.prefs().partnerPlace(owner);
         if (owner != null && !player.getUniqueId().equals(owner)
                 && !plugin.perms().hasBypass(player) && !soulmate) {
             e.setCancelled(true);

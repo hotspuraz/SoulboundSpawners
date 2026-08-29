@@ -63,6 +63,9 @@ permissions:
   soulboundspawners.audit:
     description: Use /sbs audit.
     default: op
+  soulboundspawners.partner:
+    description: Manage what your married partner may do with your spawners.
+    default: true
   soulboundspawners.admin:
     description: All SoulboundSpawners permissions.
     default: op
@@ -81,3 +84,4 @@ permissions:
       soulboundspawners.migrate: true
       soulboundspawners.status: true
       soulboundspawners.audit: true
+      soulboundspawners.partner: true

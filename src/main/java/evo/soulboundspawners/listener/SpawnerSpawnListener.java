@@ -81,7 +81,7 @@ public final class SpawnerSpawnListener implements Listener {
         if (inRange(ownerPlayer, spawnerLoc, maxDist)) return true;
 
         if (plugin.config().soulmateEnabled() && plugin.config().soulmateSpawnNearby()
-                && plugin.marriage().isAvailable()) {
+                && plugin.marriage().isAvailable() && plugin.prefs().partnerSpawn(owner)) {
             for (Player partner : plugin.marriage().onlinePartners(owner)) {
                 if (inRange(partner, spawnerLoc, maxDist)) return true;
             }

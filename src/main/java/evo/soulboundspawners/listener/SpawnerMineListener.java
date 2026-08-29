@@ -106,7 +106,8 @@ public final class SpawnerMineListener implements Listener {
                 && !owned.owner().equals(player.getUniqueId())
                 && cfg.soulmateEnabled() && cfg.soulmateCanMine()
                 && plugin.marriage().isAvailable()
-                && plugin.marriage().arePartners(owned.owner(), player.getUniqueId());
+                && plugin.marriage().arePartners(owned.owner(), player.getUniqueId())
+                && plugin.prefs().partnerMine(owned.owner());
         if (owned != null && !degraded && owned.owner() != null
                 && !owned.owner().equals(player.getUniqueId()) && !soulmate) {
             e.setCancelled(true);

@@ -10,7 +10,7 @@ record and spawner item that already exists.
 - **Author:** ImEvo
 - **Origin:** fergydanny's MineableSpawners, heavily modified in 2024 by a
   freelancer, then rebuilt here.
-- **Current version:** 4.1.1
+- **Current version:** 4.3.0
 
 ---
 
@@ -53,7 +53,8 @@ record and spawner item that already exists.
 - A SQLite JDBC driver — normally handled automatically (see
   [Troubleshooting → degraded mode](#degraded-mode)).
 - **Optional:** Vault + an economy (only if you turn charging on), Insights,
-  AxAuctions / ChestShop, PlaceholderAPI. All reached softly — nothing is required.
+  AxAuctions / ChestShop, MarriageMaster (soulmate features), PlaceholderAPI.
+  All reached softly — nothing is required.
 
 ## Installation
 
@@ -116,6 +117,20 @@ like a co-owner (config `soulmate`, all default on):
 `soulmate.enabled: false` turns the whole thing off. If MarriageMaster isn't
 installed, these settings do nothing.
 
+Individual owners can opt their partner out with **`/sbs partner`**:
+
+| Command | Effect |
+|---|---|
+| `/sbs partner` | show your three toggles and their state |
+| `/sbs partner mine <on\|off>` | let your partner mine your spawners |
+| `/sbs partner place <on\|off>` | let your partner place your spawner items |
+| `/sbs partner spawn <on\|off>` | let your spawners run while only your partner is nearby |
+
+All default **on**. A toggle can only *restrict* — it never grants more than the
+server-wide `soulmate.*` config allows. Choices persist in the `player_prefs`
+table and are saved even while soulmate features are disabled server-wide.
+Permission `soulboundspawners.partner`, default `true`.
+
 ### Degraded mode
 
 If `spawners.db` can't be opened or read at startup, the plugin logs loudly and
@@ -144,6 +159,7 @@ a DB hiccup.
 | `/sbs status` | — | storage health, cache size, hooks |
 | `/sbs audit` | — | data health report (loaded chunks only) — [see below](#sbs-audit) |
 | `/sbs audit full` | — | loads every chunk with a tracked spawner and checks all of them |
+| `/sbs partner [mine\|place\|spawn] [on\|off]` | — | control what your married partner may do with your spawners — [see above](#soulmates-marriagemaster) |
 | `/sbs migrate confirm` | — | one-time MySQL → SQLite import (run offline) |
 
 "Look at" commands raycast ~6 blocks.
@@ -195,6 +211,7 @@ Full locations for anything flagged go to console with an `[audit]` prefix.
 | `soulboundspawners.reload` | `/sbs reload` | op |
 | `soulboundspawners.status` | `/sbs status` | op |
 | `soulboundspawners.audit` | `/sbs audit` | op |
+| `soulboundspawners.partner` | `/sbs partner` | **true** |
 | `soulboundspawners.migrate` | `/sbs migrate` | op |
 | `soulboundspawners.admin` | everything above | op |
 
@@ -439,10 +456,10 @@ src/main/java/evo/soulboundspawners/
   Text.java / Permissions.java   colour codes / permission checks (incl. legacy)
   config/                        typed config view, one-time MineableSpawners import, price parsing
   spawner/                       item read/write (all 4 formats), the soulbound type set
-  ownership/                     BlockKey, OwnedSpawner record, the in-memory index + degraded mode
-  storage/                       SQLite store (single writer, WAL), MySQL->SQLite migration
+  ownership/                     BlockKey, OwnedSpawner record, the in-memory index + degraded mode, partner-prefs cache
+  storage/                       SQLite store (single writer, WAL) incl. player_prefs, MySQL->SQLite migration
   listener/                      mine, place, spawn (ownership gate + throttle), protection, anvil, join item-fix
-  hook/                          Vault (reflective), sell-guard (reflective), Insights (reflective)
+  hook/                          Vault, sell-guard, Insights, MarriageMaster (all reflective)
   command/                       /sbs dispatch, /sbs audit runner
 
 docs/
