@@ -9,19 +9,8 @@ plugins {
 val paperApiVersion = "1.21.11-R0.1-SNAPSHOT"
 val targetJava = 21
 
-// While iterating during testing, stamp the short git hash onto the version so
-// /version SoulboundSpawners on the server tells you exactly which build is
-// running. Drop -SNAPSHOT and tag when a build is signed off.
-run {
-    val base = version.toString()
-    val hash = runCatching {
-        providers.exec { commandLine("git", "rev-parse", "--short=8", "HEAD") }
-            .standardOutput.asText.get().trim()
-    }.getOrNull()
-    if (base.endsWith("-SNAPSHOT") && !hash.isNullOrEmpty()) {
-        version = "$base+$hash"
-    }
-}
+// Bump the patch version in gradle.properties for every change you deploy to a
+// test server, so `/version SoulboundSpawners` tells you what's running.
 
 repositories {
     mavenCentral()
