@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.1.3
+
+- `/sbs give` / `/sbs type` / `/sbs item type` tab-complete now suggests **every**
+  entity type, not just living ones (living listed first). A vanilla spawner
+  accepts any of them, e.g. `experience_bottle`.
+
 ## 4.1.2
 
 - **`/sbs audit prune confirm`** — deletes tracked-spawner rows whose block is

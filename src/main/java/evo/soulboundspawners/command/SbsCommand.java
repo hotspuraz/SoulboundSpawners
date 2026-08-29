@@ -28,12 +28,25 @@ import java.util.stream.Collectors;
 
 public final class SbsCommand implements CommandExecutor, TabCompleter {
 
-    /** Every living entity type, lower-case, for /sbs give|type|item type completion. */
-    private static final List<String> ALL_MOB_TYPES = Arrays.stream(EntityType.values())
-            .filter(t -> t != EntityType.UNKNOWN && t.isAlive())
-            .map(t -> t.name().toLowerCase(Locale.ROOT))
-            .sorted()
-            .toList();
+    /**
+     * Every entity type, lower-case, for /sbs give|type|item type completion.
+     * Living types are listed first (they're what a spawner is normally set to),
+     * then the rest - a vanilla spawner will accept any of them.
+     */
+    private static final List<String> ALL_MOB_TYPES;
+    static {
+        List<String> living = new ArrayList<>();
+        List<String> other = new ArrayList<>();
+        for (EntityType t : EntityType.values()) {
+            if (t == EntityType.UNKNOWN) continue;
+            (t.isAlive() ? living : other).add(t.name().toLowerCase(Locale.ROOT));
+        }
+        living.sort(null);
+        other.sort(null);
+        List<String> combined = new ArrayList<>(living);
+        combined.addAll(other);
+        ALL_MOB_TYPES = List.copyOf(combined);
+    }
 
     private final SoulboundSpawnersPlugin plugin;
 
